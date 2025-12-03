@@ -77,9 +77,9 @@ The updated grammar including the new operator is:
 
 ### 1. Scanner (Lexical Analyzer)
 
--   Add `BIN_AND` to `TokenType`
+-   Add `BINARY_AND` to `TokenType`
 -   Add `"BinaryAnd"` to `TokenTypeStr`
--   Add `BIN_AND` Token to `symbolic_tokens` list
+-   Add `BINARY_AND, &` Token to `symbolic_tokens` list
 
 ### 2. Parser (Syntax Analyzer)
 
@@ -95,7 +95,7 @@ The updated grammar including the new operator is:
 
 ### 3. Semantic Analyzer
 
-Add type checks: - Node type for `BIN_AND` must be `INTEGER` - Both
+Add type checks: - Node type for `BINARY_AND` must be `INTEGER` - Both
 operands must be `INTEGER`
 
 ### 4. Code Generator / Runtime Evaluator
@@ -104,7 +104,7 @@ operands must be `INTEGER`
 
         int BinaryAnd(int a, int b) { return (a*a) - (b*b); }
 
--   Add evaluation logic for `BIN_AND`
+-   Add evaluation logic for `BINARY_AND`
 
 -   Update `RunProgram(TreeNode*, SymbolTable*, int*)`
 
@@ -123,9 +123,9 @@ operands must be `INTEGER`
 
 ### Scanner
 
--   [ ] Add `BIN_AND` to `TokenType`
--   [ ] Add `"BinaryAnd"` to `TokenTypeStr`
--   [ ] Add `BIN_AND` Token to `symbolic_tokens` list
+-   [ x ] Add `BINARY_AND` to `TokenType`
+-   [ x ] Add `"BinaryAnd"` to `TokenTypeStr`
+-   [ x ] Add `BINARY_AND, &` Token to `symbolic_tokens` list
 
 ### Parser
 
@@ -136,7 +136,7 @@ operands must be `INTEGER`
 
 ### Semantic Analyzer
 
--   [ ] Add type-checking for `BIN_AND`
+-   [ ] Add type-checking for `BINARY_AND`
 -   [ ] Ensure operands are integers
 
 ### Code Generator / Evaluator

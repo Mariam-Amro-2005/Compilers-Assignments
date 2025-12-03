@@ -160,7 +160,7 @@ struct CompilerInfo
 enum TokenType{
                 IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE,
                 ASSIGN, EQUAL, LESS_THAN,
-                PLUS, MINUS, TIMES, DIVIDE, POWER,
+                PLUS, MINUS, TIMES, DIVIDE, BINARY_AND, POWER,
                 SEMI_COLON,
                 LEFT_PAREN, RIGHT_PAREN,
                 LEFT_BRACE, RIGHT_BRACE,
@@ -173,7 +173,7 @@ const char* TokenTypeStr[]=
             {
                 "If", "Then", "Else", "End", "Repeat", "Until", "Read", "Write",
                 "Assign", "Equal", "LessThan",
-                "Plus", "Minus", "Times", "Divide", "Power",
+                "Plus", "Minus", "Times", "Divide", "BinaryAnd", "Power",
                 "SemiColon",
                 "LeftParen", "RightParen",
                 "LeftBrace", "RightBrace",
@@ -214,6 +214,7 @@ const Token symbolic_tokens[]=
     Token(MINUS, "-"),
     Token(TIMES, "*"),
     Token(DIVIDE, "/"),
+    Token(BINARY_AND, "&"),
     Token(POWER, "^"),
     Token(SEMI_COLON, ";"),
     Token(LEFT_PAREN, "("),
