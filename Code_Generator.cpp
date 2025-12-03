@@ -850,7 +850,9 @@ void Analyze(TreeNode* node, SymbolTable* symbol_table)
     if(node->node_kind==REPEAT_NODE && node->child[1]->expr_data_type!=BOOLEAN) printf("ERROR Repeat test must be BOOLEAN\n");
     if(node->node_kind==WRITE_NODE && node->child[0]->expr_data_type!=INTEGER) printf("ERROR Write works only for INTEGER\n");
     if(node->node_kind==ASSIGN_NODE && node->child[0]->expr_data_type!=INTEGER) printf("ERROR Assign works only for INTEGER\n");
-    // add check for BINARY_AND node and its children to be INTEGER
+    if(node->node_kind==BINARY_AND && node->child[0]->expr_data_type!=INTEGER) printf("ERROR Assign works only for INTEGER\n");
+    if(node->node_kind==BINARY_AND && node->child[1]->expr_data_type!=INTEGER) printf("ERROR Assign works only for INTEGER\n");
+
 
     if(node->sibling) Analyze(node->sibling, symbol_table);
 }
@@ -867,8 +869,7 @@ int Power(int a, int b)
 }
 
 int BinaryAnd(int a ,int b) {
-    // put code here
-    return 0;
+    return a*a -  b*b;
 }
 
 int Evaluate(TreeNode* node, SymbolTable* symbol_table, int* variables)
@@ -886,7 +887,7 @@ int Evaluate(TreeNode* node, SymbolTable* symbol_table, int* variables)
     if(node->oper==TIMES) return a*b;
     if(node->oper==DIVIDE) return a/b;
     if(node->oper==POWER) return Power(a,b);
-    // add if statement for BINARY_AND oper
+    if(node->oper==BINARY_AND) return a*a -  b*b;
     throw 0;
     return 0;
 }
