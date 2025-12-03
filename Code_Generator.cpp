@@ -301,7 +301,8 @@ void GetNextToken(CompilerInfo* pci, Token* ptoken)
 // writestmt -> write expr
 // expr -> mathexpr [ (<|=) mathexpr ]
 // mathexpr -> term { (+|-) term }    left associative
-// term -> factor { (*|/) factor }    left associative
+// term -> andexpr { (*|/) andexpr }    left associative
+// andexpr -> factor { (&) factor }    left associative
 // factor -> newexpr { ^ newexpr }    right associative
 // newexpr -> ( mathexpr ) | number | identifier
 
