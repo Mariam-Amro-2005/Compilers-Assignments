@@ -460,7 +460,7 @@ TreeNode* Term(CompilerInfo* pci, ParseInfo* ppi)
 {
     pci->debug_file.Out("Start Term");
 
-    TreeNode* tree=Factor(pci, ppi);
+    TreeNode* tree=BinaryAndExpr(pci, ppi);
 
     while(ppi->next_token.type==TIMES || ppi->next_token.type==DIVIDE)
     {
