@@ -431,7 +431,31 @@ TreeNode* Factor(CompilerInfo* pci, ParseInfo* ppi)
     return tree;
 }
 
-// term -> factor { (*|/) factor }    left associative
+// andexpr -> factor { (&) factor }    left associative
+TreeNode* BinaryAndExpr(CompilerInfo* pci, ParseInfo* ppi)
+{
+    pci->debug_file.Out("Start BinaryAndExpr");
+
+    TreeNode* tree=Factor(pci, ppi);
+
+    while(ppi->next_token.type==BINARY_AND)
+    {
+        TreeNode* new_tree=new TreeNode;
+        new_tree->node_kind=OPER_NODE;
+        new_tree->oper=ppi->next_token.type;
+        new_tree->line_num=pci->in_file.cur_line_num;
+
+        new_tree->child[0]=tree;
+        Match(pci, ppi, ppi->next_token.type);
+        new_tree->child[1]=Factor(pci, ppi);
+
+        tree=new_tree;
+    }
+    pci->debug_file.Out("End BinaryAndExpr");
+    return tree;
+}
+
+// term -> andexpr { (*|/) andexpr }    left associative
 TreeNode* Term(CompilerInfo* pci, ParseInfo* ppi)
 {
     pci->debug_file.Out("Start Term");
@@ -447,7 +471,7 @@ TreeNode* Term(CompilerInfo* pci, ParseInfo* ppi)
 
         new_tree->child[0]=tree;
         Match(pci, ppi, ppi->next_token.type);
-        new_tree->child[1]=Factor(pci, ppi);
+        new_tree->child[1]=BinaryAndExpr(pci, ppi);
 
         tree=new_tree;
     }
@@ -826,6 +850,7 @@ void Analyze(TreeNode* node, SymbolTable* symbol_table)
     if(node->node_kind==REPEAT_NODE && node->child[1]->expr_data_type!=BOOLEAN) printf("ERROR Repeat test must be BOOLEAN\n");
     if(node->node_kind==WRITE_NODE && node->child[0]->expr_data_type!=INTEGER) printf("ERROR Write works only for INTEGER\n");
     if(node->node_kind==ASSIGN_NODE && node->child[0]->expr_data_type!=INTEGER) printf("ERROR Assign works only for INTEGER\n");
+    // add check for BINARY_AND node and its children to be INTEGER
 
     if(node->sibling) Analyze(node->sibling, symbol_table);
 }
@@ -838,6 +863,11 @@ int Power(int a, int b)
     if(a==0) return 0;
     if(b==0) return 1;
     if(b>=1) return a*Power(a, b-1);
+    return 0;
+}
+
+int BinaryAnd(int a ,int b) {
+    // put code here
     return 0;
 }
 
@@ -856,6 +886,7 @@ int Evaluate(TreeNode* node, SymbolTable* symbol_table, int* variables)
     if(node->oper==TIMES) return a*b;
     if(node->oper==DIVIDE) return a/b;
     if(node->oper==POWER) return Power(a,b);
+    // add if statement for BINARY_AND oper
     throw 0;
     return 0;
 }

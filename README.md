@@ -123,16 +123,16 @@ operands must be `INTEGER`
 
 ### Scanner
 
--   [ x ] Add `BINARY_AND` to `TokenType`
--   [ x ] Add `"BinaryAnd"` to `TokenTypeStr`
--   [ x ] Add `BINARY_AND, &` Token to `symbolic_tokens` list
+-   [x] Add `BINARY_AND` to `TokenType`
+-   [x] Add `"BinaryAnd"` to `TokenTypeStr`
+-   [x] Add `BINARY_AND, &` Token to `symbolic_tokens` list
 
 ### Parser
 
--   [ ] Add BNF rule for `andexpr`
--   [ ] Implement parser for `&`
--   [ ] Update `term` to use `andexpr`
--   [ ] Validate precedence correctness
+-   [x] Add BNF rule for `andexpr`
+-   [x] Implement parser for `&`:  `BinaryAndExpr`
+-   [x] Update `term` to use `andexpr`
+-   [x] Validate precedence correctness
 
 ### Semantic Analyzer
 
@@ -150,3 +150,4 @@ operands must be `INTEGER`
 -   [ ] Write 20+ `&` operator test cases
 -   [ ] Reformat code to meet CodingStyle.pdf
 -   [ ] Remove tabs and keep file \< 15000 chars
+-   [ ] Modify main
