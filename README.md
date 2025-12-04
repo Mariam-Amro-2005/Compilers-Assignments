@@ -136,14 +136,14 @@ operands must be `INTEGER`
 
 ### Semantic Analyzer
 
--   [ ] Add type-checking for `BINARY_AND`
--   [ ] Ensure operands are integers
+-   [x] Add type-checking for `BINARY_AND`
+-   [x] Ensure operands are integers
 
 ### Code Generator / Evaluator
 
--   [ ] Implement `BinaryAnd(int,int)`
--   [ ] Update `Evaluate`
--   [ ] Update `RunProgram`
+-   [x] Implement `BinaryAnd(int,int)`
+-   [x] Update `Evaluate`
+-   [x] Update `RunProgram`
 
 ### Misc
 
