@@ -104,6 +104,44 @@ read z;
 k := (x & y) * (y & z) - (z & x);
 write k
 }
+;-------------------------------------
+{ Test 13: Power has higher precedence than & }
+read x;
+read y;
+z := x ^ 3 & y;
+write z
+;-------------------------------------
+{ Test 14: AND has higher precedence than multiplication }
+read a;
+read b;
+c := a & b * 3;
+write c
+;-------------------------------------
+{ Test 15: Multiplication higher than addition, with & in between }
+read a;
+read b;
+read c;
+r := a + b & c * 2;
+write r
+;-------------------------------------
+{ Test 16: ^ evaluated before & even when AND looks larger }
+read x;
+y := x ^ 2 & x ^ 3;
+write y
+;-------------------------------------
+{ Test 17: AND binds before both additions }
+read a;
+read b;
+read c;
+k := a + b & c + 4;
+write k
+;-------------------------------------
+{ Test 18: division lower than & }
+read a;
+read b;
+read c;
+k := a / b & c / 2;
+write k
 */
 
 // sequence of statements separated by ;

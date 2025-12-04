@@ -14,15 +14,8 @@ Start AssignStmt
 Start Match
 [2] := (Assign)
 Start Match
-[2] ( (LeftParen)
-Start Expr
-Start MathExpr
-Start Term
-Start BinaryAndExpr
-Start Factor
-Start NewExpr
-Start Match
 [2] x (ID)
+Start Expr
 Start MathExpr
 Start Term
 Start BinaryAndExpr
@@ -36,26 +29,12 @@ Start Match
 Start Factor
 Start NewExpr
 Start Match
-[2] ) (RightParen)
-End NewExpr
-End Factor
-End Factor
-End BinaryAndExpr
-End Term
-End MathExpr
-Start Match
 [2] & (BinaryAnd)
 End NewExpr
 End Factor
-Start Match
-[2] ( (LeftParen)
-Start Factor
-Start NewExpr
+End Factor
 Start Match
 [2] x (ID)
-Start MathExpr
-Start Term
-Start BinaryAndExpr
 Start Factor
 Start NewExpr
 Start Match
@@ -66,16 +45,9 @@ Start Match
 Start Factor
 Start NewExpr
 Start Match
-[2] ) (RightParen)
-End NewExpr
-End Factor
-End Factor
-End BinaryAndExpr
-End Term
-End MathExpr
-Start Match
 [2] ; (SemiColon)
 End NewExpr
+End Factor
 End Factor
 End BinaryAndExpr
 End Term
