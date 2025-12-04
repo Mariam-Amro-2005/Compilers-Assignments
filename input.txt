@@ -1,15 +1,3 @@
-{ Sample program
-  in TINY language
-  compute factorial
-}
-
-read x; {input an integer}
-x:=x-1&2;
-if 0<x then {compute only if x>=1}
-  fact:=1;
-  repeat
-    fact := fact * x;
-    x:=x-1
-  until x=0;
-  write fact {output factorial}
-end
+read x;
+y := x ^ 2 & x ^ 3;
+write y
