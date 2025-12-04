@@ -20,6 +20,92 @@ if 0<x then {compute only if x>=1}
 end
 */
 
+/*
+{
+Test Cases for Binary AND (&)
+-------------------------------------
+{ Test 1: Simple AND }
+read x;
+read y;
+z := x & y;
+write z
+;-------------------------------------
+{ Test 2: AND inside addition }
+read a;
+a := (a & 3) + 5;
+write a
+;-------------------------------------
+{ Test 3: Double AND }
+read x;
+read y;
+read z;
+r := x & y & z;
+write r
+;-------------------------------------
+{ Test 4: AND mixed with * }
+read a;
+read b;
+c := a & b * 2;
+write c
+;-------------------------------------
+{ Test 5: AND inside repeat loop }
+read x;
+repeat
+        x := x & 2
+until 100 < x;
+write x
+;-------------------------------------
+{ Test 6: AND inside IF }
+read x;
+if x < 10 then
+        y := x & 3;
+write y
+else
+y := x & 5;
+write y
+end
+;-------------------------------------
+{ Test 7: Nested parentheses }
+read x;
+x := ( (x & 2) & (x & 3) );
+write x
+;-------------------------------------
+
+{ Test 8: AND with power }
+read x;
+y := (x ^ 2) & (x ^ 3);
+write y
+;-------------------------------------
+{ Test 9: AND combined with minus }
+read a;
+read b;
+c := a - (a & b);
+write c
+;-------------------------------------
+
+{ Test 10: AND inside equality check }
+read x;
+read y;
+if (x & y) = 5 then
+        write x
+else
+write y
+end
+;-------------------------------------
+{ Test 11: Multiple AND with other ops }
+read a;
+b := a & 5 + a & 3;
+write b
+;-------------------------------------
+{ Test 12: Stress AND }
+read x;
+read y;
+read z;
+k := (x & y) * (y & z) - (z & x);
+write k
+}
+*/
+
 // sequence of statements separated by ;
 // no procedures - no declarations
 // all variables are integers

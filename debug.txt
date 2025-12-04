@@ -1,0 +1,108 @@
+Start StmtSeq
+Start Stmt
+Start ReadStmt
+Start Match
+[1] x (ID)
+Start Match
+[1] ; (SemiColon)
+End ReadStmt
+End Stmt
+Start Match
+[2] y (ID)
+Start Stmt
+Start AssignStmt
+Start Match
+[2] := (Assign)
+Start Match
+[2] ( (LeftParen)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[2] x (ID)
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[2] ^ (Power)
+End NewExpr
+Start Match
+[2] 2 (Num)
+Start Factor
+Start NewExpr
+Start Match
+[2] ) (RightParen)
+End NewExpr
+End Factor
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+Start Match
+[2] & (BinaryAnd)
+End NewExpr
+End Factor
+Start Match
+[2] ( (LeftParen)
+Start Factor
+Start NewExpr
+Start Match
+[2] x (ID)
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[2] ^ (Power)
+End NewExpr
+Start Match
+[2] 3 (Num)
+Start Factor
+Start NewExpr
+Start Match
+[2] ) (RightParen)
+End NewExpr
+End Factor
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+Start Match
+[2] ; (SemiColon)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End AssignStmt
+End Stmt
+Start Match
+[3] write (Write)
+Start Stmt
+Start WriteStmt
+Start Match
+[3] y (ID)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[3]  (EndFile)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End WriteStmt
+End Stmt
+End StmtSeq
