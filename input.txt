@@ -1,3 +1,5 @@
-read x;
-y := x ^ 2 & x ^ 3;
-write y
+if 4 & 5 = 1 then
+    write 6
+else
+    write 2
+end

@@ -1,20 +1,8 @@
 Start StmtSeq
 Start Stmt
-Start ReadStmt
+Start IfStmt
 Start Match
-[1] x (ID)
-Start Match
-[1] ; (SemiColon)
-End ReadStmt
-End Stmt
-Start Match
-[2] y (ID)
-Start Stmt
-Start AssignStmt
-Start Match
-[2] := (Assign)
-Start Match
-[2] x (ID)
+[1] 4 (Num)
 Start Expr
 Start MathExpr
 Start Term
@@ -22,45 +10,42 @@ Start BinaryAndExpr
 Start Factor
 Start NewExpr
 Start Match
-[2] ^ (Power)
+[1] & (BinaryAnd)
 End NewExpr
+End Factor
 Start Match
-[2] 2 (Num)
+[1] 5 (Num)
 Start Factor
 Start NewExpr
 Start Match
-[2] & (BinaryAnd)
+[1] = (Equal)
 End NewExpr
 End Factor
-End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
 Start Match
-[2] x (ID)
+[1] 1 (Num)
+Start MathExpr
+Start Term
+Start BinaryAndExpr
 Start Factor
 Start NewExpr
 Start Match
-[2] ^ (Power)
+[1] then (Then)
 End NewExpr
-Start Match
-[2] 3 (Num)
-Start Factor
-Start NewExpr
-Start Match
-[2] ; (SemiColon)
-End NewExpr
-End Factor
 End Factor
 End BinaryAndExpr
 End Term
 End MathExpr
 End Expr
-End AssignStmt
-End Stmt
 Start Match
-[3] write (Write)
+[2] write (Write)
+Start StmtSeq
 Start Stmt
 Start WriteStmt
 Start Match
-[3] y (ID)
+[2] 6 (Num)
 Start Expr
 Start MathExpr
 Start Term
@@ -68,7 +53,7 @@ Start BinaryAndExpr
 Start Factor
 Start NewExpr
 Start Match
-[3]  (EndFile)
+[3] else (Else)
 End NewExpr
 End Factor
 End BinaryAndExpr
@@ -76,5 +61,34 @@ End Term
 End MathExpr
 End Expr
 End WriteStmt
+End Stmt
+End StmtSeq
+Start Match
+[4] write (Write)
+Start StmtSeq
+Start Stmt
+Start WriteStmt
+Start Match
+[4] 2 (Num)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[5] end (End)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End WriteStmt
+End Stmt
+End StmtSeq
+Start Match
+[5]  (EndFile)
+End IfStmt
 End Stmt
 End StmtSeq

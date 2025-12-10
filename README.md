@@ -1,153 +1,188 @@
-# README -- Compilers Assignment 1
+# README — Compilers Assignment 2
 
 ## Overview
 
-This assignment requires modifying the provided compiler implementation
-(`CompilersTask_3_CodeGenerator.cpp`) to add support for a new operator:
-**binary &**.\
-This operator is *not* a bitwise AND. Its meaning is explicitly defined
-as:
+This assignment extends the compiler from Assignment 1 to support three data types: `int`, `real`, and `bool`. The `real` type corresponds to `double` in C++. Variables must be declared at the top of the program. The compiler must enforce type rules, prevent disallowed uses (for example arithmetic on `bool`), support numeric mixing (promoting `int` to `real` where needed), and produce meaningful compile-time errors for invalid programs. You must also include a tiny test program (at least 20 statements) inside a comment block that demonstrates correctness and error handling.
 
-    a & b  =  (a^2) - (b^2)
+---
 
-Example:\
-`3 & 2 = 9 - 4 = 5`
+## Key Language Rules (summary)
 
-The operator must be fully supported in the **scanner**, **parser**,
-**semantic analyzer**, and **code generator / runtime evaluator**.
+* Types: `int`, `real` (C++ `double`), `bool`.
+* All variable declarations must appear at the beginning of the program (a block of declarations).
+* `if` and `repeat … until` conditions must evaluate to `bool`. `int` and `real` are not allowed as direct conditions.
+* No arithmetic operations on `bool` values.
+* Arithmetic is allowed on `int` and `real`. When mixing, `int` is promoted to `real` and the result is `real`.
+* Assignments must be to a variable of the same declared type. Assigning between different types is an error.
+* All disallowed cases must produce meaningful compiler errors (use exceptions).
 
-You must also include a test tiny program (20+ test cases) and ensure
-the entire file follows the strict coding style, character limit, and
-allowed library rules.
+---
 
-------------------------------------------------------------------------
+## Final corrected full BNF (clean format)
 
-## Operator Definition
+```
+program        → decls stmtseq
 
-### Name
+decls          → { decl }
+decl           → datatype id ';'
 
-Binary AND (`&`)
+datatype       → 'int' | 'real' | 'bool'
 
-### Associativity
+stmtseq        → stmt { ';' stmt }
 
-Left-associative
+stmt           → ifstmt
+               | repeatstmt
+               | assignstmt
+               | readstmt
+               | writestmt
 
-    a & b & c → (a & b) & c
+ifstmt         → 'if' expr 'then' stmtseq [ 'else' stmtseq ] 'end'
 
-### Precedence
+repeatstmt     → 'repeat' stmtseq 'until' expr
 
--   Higher than `*`, `/`
--   Lower than `^`
+assignstmt     → identifier ':=' expr
 
-### Required Grammar Change
+readstmt       → 'read' identifier
 
-The updated grammar including the new operator is:
+writestmt      → 'write' expr
 
-    // program -> stmtseq
-    // stmtseq -> stmt { ; stmt }
-    // stmt -> ifstmt | repeatstmt | assignstmt | readstmt | writestmt
-    // ifstmt -> if exp then stmtseq [ else stmtseq ] end
-    // repeatstmt -> repeat stmtseq until expr
-    // assignstmt -> identifier := expr
-    // readstmt -> read identifier
-    // writestmt -> write expr
-    // expr -> mathexpr [ (<|=) mathexpr ]
-    // mathexpr -> term { (+|-) term }    left associative
-    // term -> andexpr { (*|/) andexpr }    left associative
-    // andexpr -> factor { (&) factor }    left associative
-    // factor -> newexpr { ^ newexpr }    right associative
-    // newexpr -> ( mathexpr ) | number | identifier
+expr           → mathexpr [ ( '<' | '=' ) mathexpr ]
 
-------------------------------------------------------------------------
+mathexpr       → term { ( '+' | '-' ) term }           (left associative)
 
-## Constraints
+term           → andexpr { ( '*' | '/' ) andexpr }     (left associative)
 
--   Only allowed headers: `<cstdlib>`, `<cstdio>`, `<cstring>`,
-    `<iostream>`
--   **No STL** (no string, no vector, no map, no algorithm)
--   Max file size: **15,000 characters**
--   No tab characters (only spaces)
--   Coding style must strictly follow **CodingStyle.pdf**
--   Each team member must be able to explain all changes
--   Comments and test cases form **half of the grade**
+andexpr        → factor { '&' factor }                 (left associative)
 
-------------------------------------------------------------------------
+factor         → newexpr { '^' newexpr }               (right associative)
 
-## Required Implementation Changes
+newexpr        → '(' mathexpr ')'
+               | number
+               | identifier
+```
 
-### 1. Scanner (Lexical Analyzer)
+Notes:
 
--   Add `BINARY_AND` to `TokenType`
--   Add `"BinaryAnd"` to `TokenTypeStr`
--   Add `BINARY_AND, &` Token to `symbolic_tokens` list
+* `decls` must be a contiguous block at the top of the program. No declarations are allowed after the first non-declaration statement.
+* Numeric literals may be parsed as integers or reals depending on lexical rules; semantic analysis should assign them `INTEGER` or `REAL` appropriately.
+* `&` semantics (binary and) remain: `a & b = (a^2) - (b^2)`; keep its precedence between `*`/`/` and `^` as above.
 
-### 2. Parser (Syntax Analyzer)
+---
 
--   Add rule:
+## Implementation roadmap (detailed tasks)
 
-        andexpr -> factor { (&) factor }
+### 1) Scanner (lexical)
 
--   Implement `AndExpr`
+* Add new reserved words: `"int"`, `"real"`, `"bool"`.
+* Add tokens: `INT`, `REAL`, `BOOL` (update `TokenType` enum and `TokenTypeStr[]`).
+* Ensure numeric literal scanning distinguishes integer and real literal forms (e.g., `123` → NUM_INT, `1.23` → NUM_REAL) or scan as NUM and decide type later in semantic phase. Prefer scanning numeric literals with both forms so the parser/semantic phase can set correct literal types.
 
--   Update `term` to call `andexpr`
+### 2) Parser (syntax)
 
--   Ensure precedence ordering is correct
+* Add parsing for declarations:
 
-### 3. Semantic Analyzer
+    * `Decl()` to parse `datatype ID ;`
+    * `Decls()` to consume zero or more `decl` at program start
+    * Modify `Parse()` (or `ParseProgram`) to call `Decls()` before `StmtSeq`.
+* Add `ParseDatatype()` helper if you prefer (returns a token/type).
+* Do not intermix declarations and statements: parser should stop accepting declarations when the first statement token appears.
+* Keep expression parsing as in the BNF above; ensure `Term()` begins with the `andexpr` rule (as fixed previously).
 
-Add type checks: - Node type for `BINARY_AND` must be `INTEGER` - Both
-operands must be `INTEGER`
+### 3) AST / Node updates
 
-### 4. Code Generator / Runtime Evaluator
+* Extend `ExprDataType` enum: `VOID`, `INTEGER`, `REAL`, `BOOLEAN`.
+* Optionally add a `DECL_NODE` or annotate `ID_NODE` with declared type (stored in symbol table). If you add `DECL_NODE`, it helps debugging and analysis.
+* Ensure numeric literal nodes carry their type (`INTEGER` or `REAL`).
 
--   Implement:
+### 4) Symbol table
 
-        int BinaryAnd(int a, int b) { return (a*a) - (b*b); }
+* When inserting variable declarations:
 
--   Add evaluation logic for `BINARY_AND`
+    * Store declared type (INT/REAL/BOOL) with each `VariableInfo`.
+    * Store declaration line; use it to verify declarations are only at the top.
+* On first pass (analysis), verify that all variables were declared and that declarations happen before statements.
 
--   Update `RunProgram(TreeNode*, SymbolTable*, int*)`
+### 5) Semantic Analyzer (type checking)
 
-------------------------------------------------------------------------
+* Convert existing `Analyze()` to:
 
-## Miscellaneous Requirements
+    * Add type fields to variable entries.
+    * For each `OPER_NODE`, determine operand types and compute result type applying rules:
 
--   Include **20+ test statements** involving `&` inside a comment block
-    in the final `.cpp` file
--   Reformat code to match CodingStyle.pdf
--   Ensure no tabs and file below 15k characters
+        * Arithmetic ops (`+`, `-`, `*`, `/`, `^`) accept only `INTEGER` or `REAL`. If one operand is `REAL`, promote the other to `REAL` and result is `REAL`. If both `INTEGER` → result `INTEGER` (except dividing may produce `REAL` depending on spec: if integer division is allowed, document your decision; assignment asks mixing results be `real` — keep divide behavior consistent).
+        * `BINARY_AND (&)` as earlier: defined in terms of integers only (assignment 1 specified it uses integer math), so if you keep it integer-only, ensure both operands are integer. If spec allows real, define and document; safer to keep integer-only.
+        * Relational ops (`<`, `=`) yield `BOOLEAN`. They are allowed on numeric types (int/real). Comparing `bool` with numeric should be disallowed.
+        * Logical/boolean operators (none new here) would accept booleans only.
+    * For `ASSIGN_NODE`: ensure expression type exactly matches the declared variable type. Throw an exception otherwise.
+    * For `IF_NODE` and `REPEAT_NODE`: ensure the controlling `expr` type is `BOOLEAN`; throw otherwise.
+    * For `READ_NODE` and `WRITE_NODE`: enforce `read` and `write` semantics depending on allowed types (assignment 1 allowed `write` only for integers — update to allow `int` and `real` but not `bool` unless assignment requires).
+    * Disallow arithmetic on `BOOLEAN`.
+* All semantic errors must throw detailed exceptions indicating the location and the reason.
 
-------------------------------------------------------------------------
+### 6) Code generation / runtime (Evaluate, RunProgram)
 
-# Task Breakdown for the Team
+* `Evaluate` must handle both integer and real evaluation:
 
-### Scanner
+    * Decide on runtime representation: either separate paths (`int` vs `double`) or eval to `struct Value { ExprDataType type; int ival; double rval; bool bval; }`.
+    * Implement coercion: arithmetic on mixed `int` + `real` should convert `int` to `real` before operation and return `REAL`.
+    * For assignment, ensure runtime respects declared type. If assignment violated at compile-time, it should have thrown; runtime can assume types are consistent. Still, adding runtime checks helps catch bugs in implementation.
+* `RunProgram` unchanged for statements except verify that `Evaluate` returns a `BOOLEAN` when used as a condition and that `READ` reads values into the correct typed slot.
+* Memory for variables: maintain arrays for `int` and `double` or a unified `Value` array. Map symbol table `memloc` to the appropriate runtime storage.
 
--   [x] Add `BINARY_AND` to `TokenType`
--   [x] Add `"BinaryAnd"` to `TokenTypeStr`
--   [x] Add `BINARY_AND, &` Token to `symbolic_tokens` list
+### 7) Error messages and exceptions
 
-### Parser
+* Replace `printf`-style error reports with thrown exceptions or `throw std::runtime_error("...")` (or your project's exception mechanism). Error text must be meaningful (name, line number, expected vs found).
+* Examples:
 
--   [x] Add BNF rule for `andexpr`
--   [x] Implement parser for `&`:  `BinaryAndExpr`
--   [x] Update `term` to use `andexpr`
--   [x] Validate precedence correctness
+    * `throw std::runtime_error("Line 3: If test must be BOOLEAN, found INTEGER")`
+    * `throw std::runtime_error("Line 7: Cannot perform '+' on BOOLEAN")`
+    * `throw std::runtime_error("Line 4: Assignment type mismatch: variable 'x' declared as REAL, assigned expression of type INTEGER")` (you could allow implicit promotion here if stated; assignment forbids assignments of different types so throw).
 
-### Semantic Analyzer
+### 8) Testing
 
--   [x] Add type-checking for `BINARY_AND`
--   [x] Ensure operands are integers
+* Include a comment block in your final `.cpp` containing at least 20 test statements that:
 
-### Code Generator / Evaluator
+    * Declare several variables of each type
+    * Use `if` and `repeat` with boolean conditions
+    * Use mixed arithmetic `int` + `real`
+    * Use invalid operations on bools
+    * Attempt invalid assignments
+    * Edge cases (e.g., divide by zero handled at runtime or error documented)
+* Provide expected outputs and expected errors as comments.
 
--   [x] Implement `BinaryAnd(int,int)`
--   [x] Update `Evaluate`
--   [x] Update `RunProgram`
+---
 
-### Misc
+## Example error messages (suggested text)
 
--   [ ] Write 20+ `&` operator test cases
--   [ ] Reformat code to meet CodingStyle.pdf
--   [ ] Remove tabs and keep file \< 15000 chars
--   [ ] Modify main
+* `Line X: Variable 'v' redeclared`
+* `Line X: Variable 'v' used before declaration`
+* `Line X: If test must be BOOLEAN, found INTEGER`
+* `Line X: Cannot apply '+' to BOOLEAN`
+* `Line X: Assignment type mismatch: variable 'v' declared as REAL but assigned INTEGER` (or simply "types must match")
+* `Line X: Declarations must appear before any statement`
+
+---
+
+## Checklist (ready-to-use)
+
+* [ ] Scanner: add `int`, `real`, `bool` tokens and numeric literal support
+* [ ] Parser: add `decls`, `decl`, `datatype`; implement `Decls()` and integrate into Parsing
+* [ ] AST: add `REAL` type and ensure literal nodes carry type
+* [ ] Symbol table: store declared type and declaration line
+* [ ] Analyzer: implement type rules, throw exceptions on violations
+* [ ] Evaluate: implement typed evaluation and coercion rules
+* [ ] RunProgram: handle `read`/`write` for `real` and `int`; ensure conditions are boolean
+* [ ] Tests: write ≥20 test statements and annotate expected results
+* [ ] Formatting: remove tabs, ensure code < 15,000 characters, follow CodingStyle.pdf
+
+---
+
+## Work Division
+
+* Part 1: Scanner + Parser skeleton
+* Part 2: Symbol table + AST updates
+* Part 3: Semantic Analyzer
+* Part 4: Evaluate / runtime + `read`/`write` updates
+* Part 5: Tests + formatting + integration + full-team review 
+* Note: Make at least 20 concrete statements, and annotate each with the expected behavior (valid or error message).
+---
