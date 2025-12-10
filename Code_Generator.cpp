@@ -461,7 +461,10 @@ enum TokenType
     ID,
     NUM,
     ENDFILE,
-    ERROR
+    ERROR,
+    INT_TYPE,
+    REAL_TYPE,
+    BOOL_TYPE
 };
 
 // Used for debugging only /////////////////////////////////////////////////////////
@@ -474,7 +477,7 @@ const char *TokenTypeStr[] =
         "LeftParen", "RightParen",
         "LeftBrace", "RightBrace",
         "ID", "Num",
-        "EndFile", "Error"};
+        "EndFile", "Error", "Int", "Real", "Bool"};
 
 struct Token
 {
@@ -502,7 +505,11 @@ const Token reserved_words[] =
         Token(REPEAT, "repeat"),
         Token(UNTIL, "until"),
         Token(READ, "read"),
-        Token(WRITE, "write")};
+        Token(WRITE, "write"),
+        Token(INT_TYPE, "int"),
+        Token(REAL_TYPE, "real"),
+        Token(BOOL_TYPE, "bool"),
+};
 const int num_reserved_words = sizeof(reserved_words) / sizeof(reserved_words[0]);
 
 // if there is tokens like < <=, sort them such that sub-tokens come last: <= <
@@ -619,6 +626,7 @@ enum NodeKind
     ASSIGN_NODE,
     READ_NODE,
     WRITE_NODE,
+    DECL_NODE,
     OPER_NODE,
     NUM_NODE,
     ID_NODE
@@ -634,6 +642,7 @@ enum ExprDataType
 {
     VOID,
     INTEGER,
+    REAL,
     BOOLEAN
 };
 
@@ -656,9 +665,10 @@ struct TreeNode
         TokenType oper;
         int num;
         char *id;
-    };                           // defined for expression/int/identifier only
+    }; // defined for expression/int/identifier only
     ExprDataType expr_data_type; // defined for expression/int/identifier only
 
+    ExprDataType declared_type; // for DECL_NODE only
     int line_num;
 
     TreeNode()
@@ -1023,8 +1033,9 @@ void PrintTree(TreeNode *node, int sh = 0)
         printf(" ");
 
     printf("[%s]", NodeKindStr[node->node_kind]);
-
-    if (node->node_kind == OPER_NODE)
+    if (node->node_kind == DECL_NODE)
+        printf("[decl=%s]", ExprDataTypeStr[node->declared_type]);
+    else if (node->node_kind == OPER_NODE)
         printf("[%s]", TokenTypeStr[node->oper]);
     else if (node->node_kind == NUM_NODE)
         printf("[%d]", node->num);
@@ -1074,6 +1085,7 @@ struct LineLocation
 struct VariableInfo
 {
     char *name;
+    ExprDataType declared_type;
     int memloc;
     LineLocation *head_line; // the head of linked list of source line locations
     LineLocation *tail_line; // the tail of linked list of source line locations
@@ -1115,7 +1127,7 @@ struct SymbolTable
         return 0;
     }
 
-    void Insert(const char *name, int line_num)
+    void Insert(const char *name, int line_num, ExprDataType type = INTEGER)
     {
         LineLocation *lineloc = new LineLocation;
         lineloc->line_num = line_num;
@@ -1143,6 +1155,8 @@ struct SymbolTable
         vi->next_var = 0;
         vi->memloc = num_vars++;
         AllocateAndCopy(&vi->name, name);
+
+        vi->declared_type = type;
 
         if (!prev)
             var_info[h] = vi;
@@ -1200,7 +1214,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
     int i;
 
     if (node->node_kind == ID_NODE || node->node_kind == READ_NODE || node->node_kind == ASSIGN_NODE)
-        symbol_table->Insert(node->id, node->line_num);
+        symbol_table->Insert(node->id, node->line_num, INTEGER);
 
     for (i = 0; i < MAX_CHILDREN; i++)
         if (node->child[i])
