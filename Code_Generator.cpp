@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
+
 using namespace std;
 
 /*
@@ -1211,43 +1213,193 @@ struct SymbolTable
 
 void Analyze(TreeNode *node, SymbolTable *symbol_table)
 {
-    int i;
+    if (!node) return;
 
-    if (node->node_kind == ID_NODE || node->node_kind == READ_NODE || node->node_kind == ASSIGN_NODE)
-        symbol_table->Insert(node->id, node->line_num, INTEGER);
-
-    for (i = 0; i < MAX_CHILDREN; i++)
+    // Analyze children first (bottom-up)
+    for (int i = 0; i < MAX_CHILDREN; ++i)
+    {
         if (node->child[i])
             Analyze(node->child[i], symbol_table);
-
-    if (node->node_kind == OPER_NODE)
-    {
-        if (node->oper == EQUAL || node->oper == LESS_THAN)
-            node->expr_data_type = BOOLEAN;
-        else
-            node->expr_data_type = INTEGER;
     }
-    else if (node->node_kind == ID_NODE || node->node_kind == NUM_NODE)
+
+    // Helper lambdas
+    auto throwErr = [&](const std::string &msg) {
+        throw std::runtime_error(std::string("Line ") + std::to_string(node->line_num) + ": " + msg);
+    };
+
+    auto isNumeric = [&](ExprDataType t) {
+        return t == INTEGER || t == REAL;
+    };
+
+    // Set types for leaf nodes
+    if (node->node_kind == NUM_NODE)
+    {
         node->expr_data_type = INTEGER;
-
-    if (node->node_kind == OPER_NODE)
-    {
-        if (node->child[0]->expr_data_type != INTEGER || node->child[1]->expr_data_type != INTEGER)
-            printf("ERROR Operator applied to non-integers\n");
     }
-    if (node->node_kind == IF_NODE && node->child[0]->expr_data_type != BOOLEAN)
-        printf("ERROR If test must be BOOLEAN\n");
-    if (node->node_kind == REPEAT_NODE && node->child[1]->expr_data_type != BOOLEAN)
-        printf("ERROR Repeat test must be BOOLEAN\n");
-    if (node->node_kind == WRITE_NODE && node->child[0]->expr_data_type != INTEGER)
-        printf("ERROR Write works only for INTEGER\n");
-    if (node->node_kind == ASSIGN_NODE && node->child[0]->expr_data_type != INTEGER)
-        printf("ERROR Assign works only for INTEGER\n");
+    else if (node->node_kind == ID_NODE)
+    {
+        // ID must exist (use-before-declaration is an error)
+        VariableInfo *var = symbol_table->Find(node->id);
+        if (!var)
+            throwErr(std::string("Variable '") + node->id + "' used before declaration.");
+        node->expr_data_type = var->declared_type;
+    }
 
+        // Handle operator nodes
+    else if (node->node_kind == OPER_NODE)
+    {
+        // Ensure operand children exist
+        if (!node->child[0] || !node->child[1])
+            throwErr("Operator node missing operand(s).");
+
+        ExprDataType L = node->child[0]->expr_data_type;
+        ExprDataType R = node->child[1]->expr_data_type;
+
+        switch (node->oper)
+        {
+            // Arithmetic ops: + - * ^ and DIVIDE
+            case PLUS:
+            case MINUS:
+            case TIMES:
+            case POWER:
+            {
+                // Disallow BOOLEAN in arithmetic
+                if (L == BOOLEAN || R == BOOLEAN)
+                    throwErr("Arithmetic operator applied to BOOLEAN operand.");
+
+                if (!isNumeric(L) || !isNumeric(R))
+                    throwErr("Arithmetic operators require INTEGER or REAL operands.");
+
+                // Type promotion: if either is REAL -> REAL, else INTEGER
+                node->expr_data_type = (L == REAL || R == REAL) ? REAL : INTEGER;
+                break;
+            }
+
+            case DIVIDE:
+            {
+                // We choose to treat division as producing REAL result.
+                // Operands must be numeric. Even integer / integer -> REAL.
+                if (L == BOOLEAN || R == BOOLEAN)
+                    throwErr("Division operator applied to BOOLEAN operand.");
+
+                if (!isNumeric(L) || !isNumeric(R))
+                    throwErr("Division requires INTEGER or REAL operands.");
+
+                // Division yields REAL (keeps behavior consistent for mixed types).
+                node->expr_data_type = REAL;
+                break;
+            }
+
+                // Binary AND: integer-only per spec
+            case BINARY_AND:
+            {
+                if (L != INTEGER || R != INTEGER)
+                    throwErr("Binary AND '&' requires INTEGER operands.");
+                node->expr_data_type = INTEGER;
+                break;
+            }
+
+                // Relational ops: numeric -> BOOLEAN
+            case LESS_THAN:
+            case EQUAL:
+            {
+                if (!isNumeric(L) || !isNumeric(R))
+                    throwErr("Relational operators ('<' or '=') require numeric (INTEGER or REAL) operands.");
+                node->expr_data_type = BOOLEAN;
+                break;
+            }
+
+            default:
+                throwErr("Unknown operator in semantic analysis.");
+        }
+    }
+
+        // Assignment node: declare-on-first-assignment and enforce exact type matching
+    else if (node->node_kind == ASSIGN_NODE)
+    {
+        // RHS must exist and have been analyzed
+        if (!node->child[0])
+            throwErr("Assignment missing RHS expression.");
+
+        ExprDataType rhsType = node->child[0]->expr_data_type;
+
+        VariableInfo *var = symbol_table->Find(node->id);
+        if (!var)
+        {
+            // First assignment declares the variable with RHS type
+            symbol_table->Insert(node->id, node->line_num, rhsType);
+            var = symbol_table->Find(node->id);
+        }
+        else
+        {
+            // Ensure exact match between variable declared type and RHS
+            if (var->declared_type != rhsType)
+            {
+                std::string msg = std::string("Type mismatch in assignment to '") + node->id
+                                  + "': variable type is " + ExprDataTypeStr[var->declared_type]
+                                  + " but expression is " + ExprDataTypeStr[rhsType] + ".";
+                throwErr(msg);
+            }
+        }
+        node->expr_data_type = VOID; // assignments produce no value
+    }
+
+        // READ: declare variable if not exist (default to INTEGER)
+    else if (node->node_kind == READ_NODE)
+    {
+        VariableInfo *var = symbol_table->Find(node->id);
+        if (!var)
+        {
+            // defaulting READ to INTEGER (change if you prefer REAL)
+            symbol_table->Insert(node->id, node->line_num, INTEGER);
+            var = symbol_table->Find(node->id);
+        }
+        node->expr_data_type = VOID;
+    }
+
+        // WRITE: allow INTEGER and REAL only
+    else if (node->node_kind == WRITE_NODE)
+    {
+        if (!node->child[0])
+            throwErr("WRITE missing expression.");
+
+        ExprDataType t = node->child[0]->expr_data_type;
+        if (t == BOOLEAN)
+            throwErr("WRITE does not support BOOLEAN type.");
+        if (t != INTEGER && t != REAL)
+            throwErr("WRITE requires INTEGER or REAL expression.");
+        node->expr_data_type = VOID;
+    }
+
+        // IF / REPEAT: condition must be BOOLEAN
+    else if (node->node_kind == IF_NODE)
+    {
+        if (!node->child[0])
+            throwErr("IF missing condition expression.");
+        if (node->child[0]->expr_data_type != BOOLEAN)
+            throwErr("IF condition must be BOOLEAN.");
+        node->expr_data_type = VOID;
+    }
+    else if (node->node_kind == REPEAT_NODE)
+    {
+        if (!node->child[1])
+            throwErr("REPEAT missing test expression.");
+        if (node->child[1]->expr_data_type != BOOLEAN)
+            throwErr("REPEAT test must be BOOLEAN.");
+        node->expr_data_type = VOID;
+    }
+
+        // default: for other node types set VOID if not already set
+    else
+    {
+        if (node->expr_data_type == VOID && node->node_kind != NUM_NODE && node->node_kind != ID_NODE)
+            node->expr_data_type = VOID;
+    }
+
+    // Finally analyze sibling (if any)
     if (node->sibling)
         Analyze(node->sibling, symbol_table);
 }
-
 ////////////////////////////////////////////////////////////////////////////////////
 // Code Generator //////////////////////////////////////////////////////////////////
 

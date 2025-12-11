@@ -1,5 +1,2 @@
-if 4 & 5 = 1 then
-    write 6
-else
-    write 2
-end
+ x := 1 < 5;  { BOOLEAN }
+write 1
