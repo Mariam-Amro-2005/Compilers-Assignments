@@ -2,8 +2,30 @@ Start StmtSeq
 Start Stmt
 Start IfStmt
 Start Match
-[1] 1 (Num)
+[1] 4 (Num)
 Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[1] & (BinaryAnd)
+End NewExpr
+End Factor
+Start Match
+[1] 5 (Num)
+Start Factor
+Start NewExpr
+Start Match
+[1] = (Equal)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+Start Match
+[1] 1 (Num)
 Start MathExpr
 Start Term
 Start BinaryAndExpr
@@ -23,22 +45,8 @@ Start StmtSeq
 Start Stmt
 Start WriteStmt
 Start Match
-[2] 1 (Num)
+[2] 6 (Num)
 Start Expr
-Start MathExpr
-Start Term
-Start BinaryAndExpr
-Start Factor
-Start NewExpr
-Start Match
-[2] < (LessThan)
-End NewExpr
-End Factor
-End BinaryAndExpr
-End Term
-End MathExpr
-Start Match
-[2] 0 (Num)
 Start MathExpr
 Start Term
 Start BinaryAndExpr
