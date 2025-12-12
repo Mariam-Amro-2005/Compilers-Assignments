@@ -6,13 +6,7 @@ Start Match
 [1] ; (SemiColon)
 End Decl
 Start Match
-[1] int (Int)
-Start Decl
-Start Match
-[1] y (ID)
-Start Match
 [2] x (ID)
-End Decl
 End Decl
 Start StmtSeq
 Start Stmt
@@ -20,11 +14,19 @@ Start AssignStmt
 Start Match
 [2] := (Assign)
 Start Match
-[2] 2.3 (RealNum)
+[2] 2 (IntNum)
 Start Expr
 Start MathExpr
 Start Term
 Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[2] & (BinaryAnd)
+End NewExpr
+End Factor
+Start Match
+[2] 3 (IntNum)
 Start Factor
 Start NewExpr
 Start Match

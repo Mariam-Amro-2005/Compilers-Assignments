@@ -1,6 +1,4 @@
-real x; int y
+real x; real y; int z
 x := 2.3;
-if true then
-write x
-end
-
+y := x;
+write x; write y
