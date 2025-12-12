@@ -1,4 +1,20 @@
+Start Decls
 Start Decl
+Start Match
+[1] x (ID)
+Start Match
+[1] ; (SemiColon)
+End Decl
+Start Match
+[1] real (Real)
+Start Decl
+Start Match
+[1] y (ID)
+Start Match
+[1] ; (SemiColon)
+End Decl
+Start Match
+[1] real (Real)
 Start Decl
 Start Match
 [1] z (ID)
@@ -6,91 +22,16 @@ Start Match
 [1] ; (SemiColon)
 End Decl
 Start Match
-[1] int (Int)
+[1] real (Real)
 Start Decl
 Start Match
 [1] r (ID)
 Start Match
-[3] z (ID)
+[1] ; (SemiColon)
 End Decl
-End Decl
+Start Match
+[3]  (EndFile)
+End Decls
 Start StmtSeq
 Start Stmt
-Start AssignStmt
-Start Match
-[3] := (Assign)
-Start Match
-[3] 2.5 (RealNum)
-Start Expr
-Start MathExpr
-Start Term
-Start BinaryAndExpr
-Start Factor
-Start NewExpr
-Start Match
-[3] ; (SemiColon)
-End NewExpr
-End Factor
-End BinaryAndExpr
-End Term
-End MathExpr
-End Expr
-End AssignStmt
-End Stmt
-Start Match
-[4] r (ID)
-Start Stmt
-Start AssignStmt
-Start Match
-[4] := (Assign)
-Start Match
-[4] 8.0 (RealNum)
-Start Expr
-Start MathExpr
-Start Term
-Start BinaryAndExpr
-Start Factor
-Start NewExpr
-Start Match
-[4] / (Divide)
-End NewExpr
-End Factor
-End BinaryAndExpr
-Start Match
-[4] 2 (IntNum)
-Start BinaryAndExpr
-Start Factor
-Start NewExpr
-Start Match
-[4] ; (SemiColon)
-End NewExpr
-End Factor
-End BinaryAndExpr
-End Term
-End MathExpr
-End Expr
-End AssignStmt
-End Stmt
-Start Match
-[5] write (Write)
-Start Stmt
-Start WriteStmt
-Start Match
-[5] z (ID)
-Start Expr
-Start MathExpr
-Start Term
-Start BinaryAndExpr
-Start Factor
-Start NewExpr
-Start Match
-[7]  (EndFile)
-End NewExpr
-End Factor
-End BinaryAndExpr
-End Term
-End MathExpr
-End Expr
-End WriteStmt
-End Stmt
 End StmtSeq

@@ -426,7 +426,6 @@ enum TokenType
     LEFT_BRACE,
     RIGHT_BRACE,
     ID,
-    NUM,
     INT,
     INT_NUM,
     REAL,
@@ -447,7 +446,7 @@ const char *TokenTypeStr[] =
         "SemiColon",
         "LeftParen", "RightParen",
         "LeftBrace", "RightBrace",
-        "ID", "Num", "Int", "IntNum", "Real", "RealNum", "Bool", "True", "False",
+        "ID", "Int", "IntNum", "Real", "RealNum", "Bool", "True", "False",
         "EndFile", "Error"};
 
 struct Token
@@ -622,7 +621,6 @@ enum NodeKind
     READ_NODE,
     WRITE_NODE,
     OPER_NODE,
-    NUM_NODE,
     INT_NODE,
     REAL_NODE,
     BOOL_NODE,
@@ -633,7 +631,7 @@ enum NodeKind
 const char *NodeKindStr[] =
     {
         "Declare", "If", "Repeat", "Assign", "Read", "Write",
-        "Oper", "Num", "Int", "Real", "Bool", "ID"};
+        "Oper", "Int", "Real", "Bool", "ID"};
 
 enum ExprDataType
 {
@@ -653,7 +651,7 @@ const char *ExprDataTypeStr[] =
 struct TreeNode
 {
     TreeNode *child[MAX_CHILDREN];
-    TreeNode *sibling; // used for sibling statements only
+    TreeNode *sibling;
 
     NodeKind node_kind;
 
@@ -706,7 +704,6 @@ TreeNode *NewExpr(CompilerInfo *pci, ParseInfo *ppi)
     pci->debug_file.Out("Start NewExpr");
 
     // Compare the next token with the First() of possible statements
-    // if (ppi->next_token.type == NUM)
     if (ppi->next_token.type == INT_NUM || ppi->next_token.type == REAL_NUM)
     {
         TreeNode *tree = new TreeNode;
@@ -1057,7 +1054,6 @@ TreeNode *Decl(CompilerInfo *pci, ParseInfo *ppi)
     tree->node_kind = DECL_NODE;
     tree->line_num = pci->in_file.cur_line_num;
 
-    // datatype
     if (ppi->next_token.type == INT ||
         ppi->next_token.type == REAL ||
         ppi->next_token.type == BOOL)
@@ -1070,7 +1066,6 @@ TreeNode *Decl(CompilerInfo *pci, ParseInfo *ppi)
     else
         throw 0;
 
-    // identifier
     if (ppi->next_token.type != ID)
         throw 0;
 
@@ -1125,11 +1120,7 @@ TreeNode *Parse(CompilerInfo *pci)
 {
     ParseInfo parse_info;
     GetNextToken(pci, &parse_info.next_token);
-
-    // Parse declarations first
     TreeNode *decl_tree = Decls(pci, &parse_info);
-
-    // Parse statement sequence
     TreeNode *stmt_tree = StmtSeq(pci, &parse_info);
 
     if (parse_info.next_token.type != ENDFILE)
@@ -1148,7 +1139,6 @@ TreeNode *Parse(CompilerInfo *pci)
     tmp->sibling = stmt_tree;
 
     return decl_tree;
-    // return stmt_tree;
 }
 
 void PrintTree(TreeNode *node, int sh = 0)
@@ -1166,7 +1156,7 @@ void PrintTree(TreeNode *node, int sh = 0)
         printf("[%d]", node->num);
 
     if (node->node_kind == REAL_NODE)
-        printf("[%lf]", node->real_num); // FIX: prints doubles correctly
+        printf("[%lf]", node->real_num);
 
     if (node->node_kind == ASSIGN_NODE)
     {
@@ -1240,9 +1230,9 @@ struct VariableInfo
     ExprDataType declared_type;
     char *name;
     int memloc;
-    LineLocation *head_line; // the head of linked list of source line locations
-    LineLocation *tail_line; // the tail of linked list of source line locations
-    VariableInfo *next_var;  // the next variable in the linked list in the same hash bucket of the symbol table
+    LineLocation *head_line;
+    LineLocation *tail_line;
+    VariableInfo *next_var;
 };
 
 struct SymbolTable
@@ -1294,7 +1284,6 @@ struct SymbolTable
         {
             if (Equals(name, cur->name))
             {
-                // just add this line location to the list of line locations of the existing var
                 cur->tail_line->next = lineloc;
                 cur->tail_line = lineloc;
                 return;
