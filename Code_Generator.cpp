@@ -668,94 +668,94 @@ const char *ExprDataTypeStr[] =
 
 #define MAX_CHILDREN 3
 struct Value {
-    enum Type { NONE = 0, INT = 1, DOUBLE = 2, BOOL = 3 } type;
+    ExprDataType type;
     union {
         int int_val;
-        double double_val;
+        double real_value;
         bool bool_val;
     } v{};
 
-    Value() : type(NONE) { v.int_val = 0; }
-    Value(int x) : type(INT) { v.int_val = x; }
-    Value(double x) : type(DOUBLE) { v.double_val = x; }
-    Value(bool x) : type(BOOL) { v.bool_val = x; }
+    Value() : type(VOID) { v.int_val = 0; }
+    Value(int x) : type(INTEGER) { v.int_val = x; }
+    Value(double x) : type(REAL) { v.real_value = x; }
+    Value(bool x) : type(BOOLEAN) { v.bool_val = x; }
 
     int asInt() const {
-        if (type == INT) return v.int_val;
-        if (type == DOUBLE) return (int)(v.double_val);
+        if (type == INTEGER) return v.int_val;
+        if (type == REAL) return (int)(v.real_value);
         return v.bool_val ? 1 : 0;
     }
     double asDouble() const {
-        if (type == DOUBLE) return v.double_val;
-        if (type == INT) return (double)(v.int_val);
+        if (type == REAL) return v.real_value;
+        if (type == INTEGER) return (double)(v.int_val);
         return v.bool_val ? 1.0 : 0.0;
     }
     bool asBool() const {
-        if (type == BOOL) return v.bool_val;
-        if (type == INT) return v.int_val != 0;
-        return v.double_val != 0.0;
+        if (type == BOOLEAN) return v.bool_val;
+        if (type == INTEGER) return v.int_val != 0;
+        return v.real_value != 0.0;
     }
-    void setInt(int x) { type = INT; v.int_val = x; }
-    void setDouble(double x) { type = DOUBLE; v.double_val = x; }
-    void setBool(bool x) { type = BOOL; v.bool_val = x; }
+    void setInt(int x) { type = INTEGER; v.int_val = x; }
+    void setDouble(double x) { type = REAL; v.real_value = x; }
+    void setBool(bool x) { type = BOOLEAN; v.bool_val = x; }
     bool equalOper(const Value &other) const {
         if (type != other.type) return false;
         switch (type) {
-            case INT: return v.int_val == other.v.int_val;
-            case DOUBLE: return v.double_val == other.v.double_val;
-            case BOOL: return v.bool_val == other.v.bool_val;
+            case INTEGER: return v.int_val == other.v.int_val;
+            case REAL: return v.real_value == other.v.real_value;
+            case BOOLEAN: return v.bool_val == other.v.bool_val;
             default: return true; // both NONE
         }
     }
     bool lessThanOper(const Value &other) const {
         if (type != other.type) return false;
         switch (type) {
-            case INT: return v.int_val < other.v.int_val;
-            case DOUBLE: return v.double_val < other.v.double_val;
-            case BOOL: return (!v.bool_val) && other.v.bool_val;
+            case INTEGER: return v.int_val < other.v.int_val;
+            case REAL: return v.real_value < other.v.real_value;
+            case BOOLEAN: return (!v.bool_val) && other.v.bool_val;
             default: return false; // both NONE
         }
     }
     bool lessThanOrEqualOper(const Value &other) const {
         if (type != other.type) return false;
         switch (type) {
-            case INT: return v.int_val <= other.v.int_val;
-            case DOUBLE: return v.double_val <= other.v.double_val;
-            case BOOL: return (!v.bool_val) || other.v.bool_val;
+            case INTEGER: return v.int_val <= other.v.int_val;
+            case REAL: return v.real_value <= other.v.real_value;
+            case BOOLEAN: return (!v.bool_val) || other.v.bool_val;
             default: return true; // both NONE
         }
     }
     Value plusOper(const Value &other) const {
-        if (type == DOUBLE || other.type == DOUBLE) {
+        if (type == REAL || other.type == REAL) {
             return Value(this->asDouble() + other.asDouble());
-        } else if (type == INT || other.type == INT) {
+        } else if (type == INTEGER || other.type == INTEGER) {
             return Value(this->asInt() + other.asInt());
         } else {
             return Value(this->asBool() || other.asBool());
         }
     }
     Value minusOper(const Value &other) const {
-        if (type == DOUBLE || other.type == DOUBLE) {
+        if (type == REAL || other.type == REAL) {
             return Value(this->asDouble() - other.asDouble());
-        } else if (type == INT || other.type == INT) {
+        } else if (type == INTEGER || other.type == INTEGER) {
             return Value(this->asInt() - other.asInt());
         } else {
             return Value(this->asBool() && !other.asBool());
         }
     }
     Value timesOper(const Value &other) const {
-        if (type == DOUBLE || other.type == DOUBLE) {
+        if (type == REAL || other.type == REAL) {
             return Value(this->asDouble() * other.asDouble());
-        } else if (type == INT || other.type == INT) {
+        } else if (type == INTEGER || other.type == INTEGER) {
             return Value(this->asInt() * other.asInt());
         } else {
             return Value(this->asBool() && other.asBool());
         }
     }
     Value divideOper(const Value &other) const {
-        if (type == DOUBLE || other.type == DOUBLE) {
+        if (type == REAL || other.type == REAL) {
             return Value(this->asDouble() / other.asDouble());
-        } else if (type == INT || other.type == INT) {
+        } else if (type == INTEGER || other.type == INTEGER) {
             return Value(this->asInt() / other.asInt());
         } else {
             return Value(!other.asBool() ? false : this->asBool());
@@ -1436,7 +1436,7 @@ void RunProgram(TreeNode *node, SymbolTable *symbol_table, Value *variables)
         Value v = Evaluate(node->child[0], symbol_table, variables);
         switch (v.type) {
             case 1: printf("Val: %d\n", v.v.int_val); break;
-            case 2: printf("Val: %f\n", v.v.double_val); break;
+            case 2: printf("Val: %f\n", v.v.real_value); break;
             case 3: printf("Val: %s\n", v.v.bool_val ? "true" : "false"); break;
             default: printf("Val: <none>\n"); break;
         }
