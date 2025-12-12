@@ -1,3 +1,166 @@
+// Mariam Amro Ahmed 20221217 - Sobhi Mohamed 20221088 - Sama Ashraf 20220436 - Ahmed Saeed 20220040 - Josiane Usama 20220502
+
+/*
+{ Test 1: Int Variable Basics }
+int a;
+{a := 10;}
+read a ;
+write a;
+{Logic: Declare an integer- assign a literal and print it}
+{Result: Valid. Prints 10}
+;-------------------------------------
+{Test 2: Real Variable Basics}
+real x;
+x := 3.14;
+write x
+{Logic: Declare a real (double), assign a decimal literal, and print it}
+{Result: Valid. Prints 3.14}
+;-------------------------------------
+{Test 3: Variable-to-Variable Mismatch}
+int a;
+real b;
+b := 1.5;
+a := b
+{Expected Error :Type mismatch: variable 'a' is Integer but assigned Real}
+;-------------------------------------
+{Test 4: Numeric Mixing }
+int i; real r; real res;
+i := 10; r := 0.5;
+res := i + r;
+write res
+{ Logic: When mixing int and real, int is promoted to real. Result is real.}
+{Result: Valid. 'res' becomes 10.5}
+;-------------------------------------
+{Test 5: Complex Expression}
+real res;
+res := (10 / 2) + (1.5 * 2);
+write res
+{Logic: (10/2) is INT, (1.5*2) is REAL. The final addition promotes the first result}
+{ Result: Valid. res = 8.0}
+;-------------------------------------
+{Test 6: If-Then Statement with Boolean Condition}
+bool ready;
+ready := true;
+if ready then
+ write 100
+end
+{Logic: The expression in an 'if' must evaluate to BOOLEAN}
+{Result: Valid. Prints 100}
+;-------------------------------------
+{Test 7: Repeat-Until Loop}
+int count;
+count := 3;
+repeat write count ;count := count - 1 until count = 0
+{Logic: The 'until' condition (count = 0) returns a BOOLEAN}
+{Result: Valid. Loop runs 3 times}
+;-------------------------------------
+{Test 8: Illegal Boolean in Power Operator}
+bool flag;
+real r;
+flag := true;
+r := 2.0 ^ flag
+{Logic: The power operator (^) is an arithmetic operation
+According to the rules, arithmetic is only allowed on int and real
+Expected Error: "Line X: Cannot apply '^' operator to BOOLEAN type"}
+;-------------------------------------
+{Test 9: Assignment Type Mismatch (Real to Int)}
+int i;
+i := 5.5
+{Logic: Cannot assign a REAL value to an INT variable}
+{Expected Error: "Line X: Assignment type mismatch: expected INT, found REAL"}
+;-------------------------------------
+{Test 10: Assignment Type Mismatch (Int to Bool)Test 10: Assignment Type Mismatch (Int to Bool)}
+bool b;
+b := 1
+{Logic: Integer 1 is not a boolean. Strictly check types}
+{Expected Error: "Line X: Assignment type mismatch: expected BOOL, found INT"}
+;-------------------------------------
+{Test 11: Arithmetic on Boolean Types}
+bool b;
+int result;
+result := b + 1
+{Logic: Arithmetic operators (+, -, *, /, ^) are forbidden for booleans}
+{Expected Error: "Line X: Cannot perform '+' on BOOLEAN"}
+;-------------------------------------
+{Test 12: Using Int in If-Condition}
+int x;
+x := 1;
+if x then write 1 end
+{Logic: Conditions must be boolean}
+{Expected Error: "Line X: If condition must be BOOLEAN, found INT"}
+;-------------------------------------
+{Test 13: Using Real in Repeat-Condition}
+real r;
+repeat write 1 until r
+{Logic: 'until' condition must be boolean}
+{Expected Error: "Line X: Repeat until condition must be BOOLEAN, found REAL"}
+;-------------------------------------
+{Test 14: Mixing Boolean and Int in Comparison}
+bool b; int i;
+if b = i then write 0 end
+{Logic: Comparison operators require operands of compatible types (numeric vs numeric)}
+{Expected Error: Relational operators require numeric operands}
+;-------------------------------------
+{Test 15:& with Real Operand}
+int i;
+real r;
+i := 10;
+r := 2.5;
+i := i & r;
+write i
+;-------------------------------------
+{Test 16: Declaration After Statement}
+int a;
+a := 10;
+real b
+{Logic: All declarations must appear at the very top of the program}
+{Expected Error: "Line X: Declarations must appear before any statement"}
+;-------------------------------------
+{Test 17: Variable Redeclaration}
+int x;
+real x
+{Logic: Variables must have unique names within the same scope}
+{ Expected Error: "Line X: Variable 'x' already declared"}
+;-------------------------------------
+{Test 18: Use of Undeclared Variable}
+k := 50
+{Logic: Every variable must be declared in the declaration block}
+{Expected Error: "Line X: Variable 'k' used before declaration"}
+;-------------------------------------
+{Test 19: Operator Precedence with Promotion}
+int a;
+int b;
+real c;
+real result;
+a := 10;
+b := 5;
+c := 2.5;
+result := c + a * b;
+write result
+{Result: Valid. 'result' stores 52.5}
+;-------------------------------------
+{Test 20: boolean plus number}
+bool flag;
+int i;
+i := flag + 1
+{Expected Error: Arithmetic operator cannot be applied to BOOLEAN}
+{Test 21: Write Boolean Value}
+ bool flag;
+ flag := true;
+ write flag
+ {Logic: Writing a boolean value should print 'true' or 'false'}
+ {Result: Valid. Prints 'true'}
+
+ {Test 22: Division by Zero}
+ int x;
+ int y;
+ x := 10;
+ y := 0;
+ write x / y
+ {Logic: Division by zero should throw a runtime error}
+ {Expected Error: "RUNTIME ERROR: Division by zero at line 8"}
+ */
+
 enum TokenType
 {
     IF,
