@@ -1,8 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <string>
-#include <stdexcept>
 
 using namespace std;
 
@@ -563,7 +561,9 @@ void GetNextToken(CompilerInfo *pci, Token *ptoken)
         if (decimal)
         {
             ptoken->type = REAL_NUM;
-        } else {
+        }
+        else
+        {
             ptoken->type = INT_NUM;
         }
         Copy(ptoken->str, s, j);
@@ -716,7 +716,9 @@ TreeNode *NewExpr(CompilerInfo *pci, ParseInfo *ppi)
             tree->node_kind = INT_NODE;
             tree->expr_data_type = INTEGER;
             tree->num = atoi(ppi->next_token.str);
-        } else {
+        }
+        else
+        {
             tree->node_kind = REAL_NODE;
             tree->expr_data_type = REAL_TYPE;
             tree->real_num = atof(ppi->next_token.str);
@@ -1358,26 +1360,31 @@ struct SymbolTable
     }
 };
 
+void Analyze(TreeNode *node, SymbolTable *symbol_table)
+{
+    if (!node)
+        return;
 
-void Analyze(TreeNode *node, SymbolTable *symbol_table) {
-    if (!node) return;
-
-    auto throwErr = [&](const std::string &msg) {
-        throw std::runtime_error(std::string("Line ") +
-                                 std::to_string(node->line_num) + ": " + msg);
+    auto throwErr = [&](const char *msg)
+    {
+        printf("ERROR at line %d: %s\n", node->line_num, msg);
+        throw 0;
     };
 
-    auto isNumeric = [&](ExprDataType t) {
+    auto isNumeric = [&](ExprDataType t)
+    {
         return t == INTEGER || t == REAL_TYPE;
     };
 
-
-    if (node->node_kind == DECL_NODE) {
+    if (node->node_kind == DECL_NODE)
+    {
 
         VariableInfo *existing = symbol_table->Find(node->child[0]->id);
-        if (existing) {
-            throwErr(std::string("Variable '") + node->child[0]->id +
-                     "' already declared.");
+        if (existing)
+        {
+            char msg[256];
+            snprintf(msg, sizeof(msg), "Variable '%s' was declaerd before.", node->id);
+            throwErr(msg);
         }
 
         symbol_table->Insert(node->child[0]->id, node->line_num, node->declared_type);
@@ -1388,82 +1395,91 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
         return;
     }
 
-
-    for (int i = 0; i < MAX_CHILDREN; ++i) {
+    for (int i = 0; i < MAX_CHILDREN; ++i)
+    {
         if (node->child[i])
             Analyze(node->child[i], symbol_table);
     }
 
-
-    if (node->node_kind == INT_NODE) {
+    if (node->node_kind == INT_NODE)
+    {
         node->expr_data_type = INTEGER;
     }
 
-    else if (node->node_kind == REAL_NODE) {
+    else if (node->node_kind == REAL_NODE)
+    {
         node->expr_data_type = REAL_TYPE;
     }
 
-    else if (node->node_kind == BOOL_NODE) {
+    else if (node->node_kind == BOOL_NODE)
+    {
         node->expr_data_type = BOOLEAN;
     }
 
-    else if (node->node_kind == ID_NODE) {
+    else if (node->node_kind == ID_NODE)
+    {
         VariableInfo *var = symbol_table->Find(node->id);
         if (!var)
-            throwErr(std::string("Variable '") + node->id +
-                     "' used before declaration.");
+        {
+            char msg[256];
+            snprintf(msg, sizeof(msg), "Variable '%s' used before declaration.", node->id);
+            throwErr(msg);
+        }
         symbol_table->Insert(node->id, node->line_num, var->declared_type);
         node->expr_data_type = var->declared_type;
     }
 
-    else if (node->node_kind == OPER_NODE) {
+    else if (node->node_kind == OPER_NODE)
+    {
         if (!node->child[0] || !node->child[1])
             throwErr("Operator node missing operand(s).");
 
         ExprDataType L = node->child[0]->expr_data_type;
         ExprDataType R = node->child[1]->expr_data_type;
 
-        switch (node->oper) {
-            case PLUS:
-            case MINUS:
-            case TIMES:
-            case POWER:
-                if (L == BOOLEAN || R == BOOLEAN)
-                    throwErr("Arithmetic operator cannot be applied to BOOLEAN.");
-                if (!isNumeric(L) || !isNumeric(R))
-                    throwErr("Arithmetic requires INTEGER or REAL operands.");
+        switch (node->oper)
+        {
+        case PLUS:
+        case MINUS:
+        case TIMES:
+        case POWER:
+            if (L == BOOLEAN || R == BOOLEAN)
+                throwErr("Arithmetic operator cannot be applied to BOOLEAN.");
+            if (!isNumeric(L) || !isNumeric(R))
+                throwErr("Arithmetic requires INTEGER or REAL operands.");
 
-                node->expr_data_type = (L == REAL_TYPE || R == REAL_TYPE) ? REAL_TYPE : INTEGER;
-                break;
+            node->expr_data_type = (L == REAL_TYPE || R == REAL_TYPE) ? REAL_TYPE : INTEGER;
+            break;
 
-            case DIVIDE:
-                if (L == BOOLEAN || R == BOOLEAN)
-                    throwErr("Division cannot be applied to BOOLEAN.");
-                if (!isNumeric(L) || !isNumeric(R))
-                    throwErr("Division requires INTEGER or REAL operands.");
-                // Division always yields REAL
-                node->expr_data_type = REAL_TYPE;
-                break;
+        case DIVIDE:
+            if (L == BOOLEAN || R == BOOLEAN)
+                throwErr("Division cannot be applied to BOOLEAN.");
+            if (!isNumeric(L) || !isNumeric(R))
+                throwErr("Division requires INTEGER or REAL operands.");
+            // Division always yields REAL
+            node->expr_data_type = REAL_TYPE;
+            break;
 
-            case BINARY_AND:
-                if (L != INTEGER || R != INTEGER)
-                    throwErr("Binary AND '&' requires INTEGER operands only.");
-                node->expr_data_type = INTEGER;
-                break;
+        case BINARY_AND:
+            if (L != INTEGER || R != INTEGER)
+                throwErr("Binary AND '&' requires INTEGER operands only.");
+            node->expr_data_type = INTEGER;
+            break;
 
-            case LESS_THAN:
-            case EQUAL:
-                if (!isNumeric(L) || !isNumeric(R))
-                    throwErr("Relational operators require numeric operands.");
-                node->expr_data_type = BOOLEAN;
-                break;
+        case LESS_THAN:
+        case EQUAL:
+            if (!isNumeric(L) || !isNumeric(R))
+                throwErr("Relational operators require numeric operands.");
+            node->expr_data_type = BOOLEAN;
+            break;
 
-            default:
-                throwErr("Unknown operator.");
+        default:
+            throwErr("Unknown operator.");
         }
     }
 
-    else if (node->node_kind == ASSIGN_NODE) {
+    else if (node->node_kind == ASSIGN_NODE)
+    {
         if (!node->child[0])
             throwErr("Assignment missing LHS expression.");
         if (!node->child[1])
@@ -1473,23 +1489,27 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
         TreeNode *rhs = node->child[1]; // expr
 
         VariableInfo *var = symbol_table->Find(lhs->id);
-        if (!var) {
-            throwErr(std::string("Variable '") + node->id +
-                     "' not declared. All variables must be declared at the beginning.");
+        if (!var)
+        {
+            char msg[256];
+            snprintf(msg, sizeof(msg), "Variable '%s' used before declaration.", node->id);
+            throwErr(msg);
         }
 
         ExprDataType rhsType = rhs->expr_data_type;
 
-
-        if (var->declared_type != rhsType) {
-            throwErr(std::string("Type mismatch: variable '") + node->id +
-                     "' is " + ExprDataTypeStr[var->declared_type] +
-                     " but assigned " + ExprDataTypeStr[rhsType] + ".");
+        if (var->declared_type != rhsType)
+        {
+            char msg[256];
+            snprintf(msg, sizeof(msg), "Type mismatch: variable '%s' is %s but assigned %s.",
+                     lhs->id, ExprDataTypeStr[var->declared_type], ExprDataTypeStr[rhsType]);
+            throwErr(msg);
         }
         node->expr_data_type = VOID;
     }
 
-    else if (node->node_kind == READ_NODE) {
+    else if (node->node_kind == READ_NODE)
+    {
         TreeNode *idNode = node->child[0];
 
         if (idNode->node_kind != ID_NODE)
@@ -1500,16 +1520,19 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
 
         // VariableInfo *var = symbol_table->Find(node->id);
         VariableInfo *var = symbol_table->Find(idNode->id);
-        if (!var) {
-            throwErr(std::string("Variable '") + node->id +
-                     "' not declared. All variables must be declared at the beginning.");
+        if (!var)
+        {
+            char msg[256];
+            snprintf(msg, sizeof(msg), "Variable '%s' used before declaration.", idNode->id);
+            throwErr(msg);
         }
         // node->expr_data_type = VOID;
         symbol_table->Insert(idNode->id, node->line_num, var->declared_type);
         idNode->expr_data_type = var->declared_type;
     }
 
-    else if (node->node_kind == WRITE_NODE) {
+    else if (node->node_kind == WRITE_NODE)
+    {
         if (!node->child[0])
             throwErr("WRITE missing expression.");
         ExprDataType t = node->child[0]->expr_data_type;
@@ -1520,21 +1543,31 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
         node->expr_data_type = VOID;
     }
 
-    else if (node->node_kind == IF_NODE) {
+    else if (node->node_kind == IF_NODE)
+    {
         if (!node->child[0])
             throwErr("IF missing condition.");
         if (node->child[0]->expr_data_type != BOOLEAN)
-            throwErr("IF condition must be BOOLEAN, found " +
-                     std::string(ExprDataTypeStr[node->child[0]->expr_data_type]) + ".");
+        {
+            char msg[256];
+            snprintf(msg, sizeof(msg), "IF condition must be BOOLEAN, found %s.",
+                     ExprDataTypeStr[node->child[0]->expr_data_type]);
+            throwErr(msg);
+        }
         node->expr_data_type = VOID;
     }
 
-    else if (node->node_kind == REPEAT_NODE) {
+    else if (node->node_kind == REPEAT_NODE)
+    {
         if (!node->child[1])
             throwErr("REPEAT missing test expression.");
         if (node->child[1]->expr_data_type != BOOLEAN)
-            throwErr("REPEAT test must be BOOLEAN, found " +
-                     std::string(ExprDataTypeStr[node->child[1]->expr_data_type]) + ".");
+        {
+            char msg[256];
+            snprintf(msg, sizeof(msg), "REPEAT test expression must be BOOLEAN, found %s.",
+                     ExprDataTypeStr[node->child[1]->expr_data_type]);
+            throwErr(msg);
+        }
         node->expr_data_type = VOID;
     }
 
@@ -1619,7 +1652,7 @@ void RunProgram(TreeNode *node, SymbolTable *symbol_table, double *variables)
         else if (node->child[2])
             RunProgram(node->child[2], symbol_table, variables);
     }
-    if (node->node_kind == ASSIGN_NODE )
+    if (node->node_kind == ASSIGN_NODE)
     {
         TreeNode *lhs = node->child[0];
         TreeNode *rhs = node->child[1];
