@@ -1,4 +1,22 @@
-real x; real y; int z
+real x; real y; real z; real r;
 x := 2.3;
 y := x;
-write x; write y
+write x; write y;
+
+z := ((5 + 3) ^ 2) / 2;
+
+r := 2.5;
+
+write r
+
+{if z < 50 then
+write z
+end;}
+
+{read r;
+repeat
+    r := r & 2;
+    write r
+until 100 < r;}
+
+

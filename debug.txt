@@ -14,13 +14,23 @@ Start Match
 [1] ; (SemiColon)
 End Decl
 Start Match
-[1] int (Int)
+[1] real (Real)
 Start Decl
 Start Match
 [1] z (ID)
 Start Match
-[2] x (ID)
+[1] ; (SemiColon)
 End Decl
+Start Match
+[1] int (Int)
+Start Decl
+Start Match
+[1] r (ID)
+Start Match
+[1] ; (SemiColon)
+End Decl
+Start Match
+[2] x (ID)
 End Decl
 Start StmtSeq
 Start Stmt
@@ -104,7 +114,275 @@ Start BinaryAndExpr
 Start Factor
 Start NewExpr
 Start Match
-[4]  (EndFile)
+[4] ; (SemiColon)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End WriteStmt
+End Stmt
+Start Match
+[6] z (ID)
+Start Stmt
+Start AssignStmt
+Start Match
+[6] := (Assign)
+Start Match
+[6] ( (LeftParen)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[6] ( (LeftParen)
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[6] 5.0 (RealNum)
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[6] + (Plus)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+Start Match
+[6] 3.0 (RealNum)
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[6] ) (RightParen)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+Start Match
+[6] ^ (Power)
+End NewExpr
+Start Match
+[6] 2 (IntNum)
+Start Factor
+Start NewExpr
+Start Match
+[6] ) (RightParen)
+End NewExpr
+End Factor
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+Start Match
+[6] / (Divide)
+End NewExpr
+End Factor
+End BinaryAndExpr
+Start Match
+[6] 2 (IntNum)
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[6] ; (SemiColon)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End AssignStmt
+End Stmt
+Start Match
+[8] if (If)
+Start Stmt
+Start IfStmt
+Start Match
+[8] z (ID)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[8] < (LessThan)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+Start Match
+[8] 50 (IntNum)
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[8] then (Then)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+Start Match
+[9] write (Write)
+Start StmtSeq
+Start Stmt
+Start WriteStmt
+Start Match
+[9] z (ID)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[10] end (End)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End WriteStmt
+End Stmt
+End StmtSeq
+Start Match
+[10] ; (SemiColon)
+End IfStmt
+End Stmt
+Start Match
+[12] read (Read)
+Start Stmt
+Start ReadStmt
+Start Match
+[12] r (ID)
+Start Match
+[12] ; (SemiColon)
+End ReadStmt
+End Stmt
+Start Match
+[13] repeat (Repeat)
+Start Stmt
+Start RepeatStmt
+Start Match
+[14] r (ID)
+Start StmtSeq
+Start Stmt
+Start AssignStmt
+Start Match
+[14] := (Assign)
+Start Match
+[14] r (ID)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[14] & (BinaryAnd)
+End NewExpr
+End Factor
+Start Match
+[14] 2 (IntNum)
+Start Factor
+Start NewExpr
+Start Match
+[14] ; (SemiColon)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End AssignStmt
+End Stmt
+Start Match
+[15] write (Write)
+Start Stmt
+Start WriteStmt
+Start Match
+[15] r (ID)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[16] until (Until)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End WriteStmt
+End Stmt
+End StmtSeq
+Start Match
+[16] 100 (IntNum)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[16] < (LessThan)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+Start Match
+[16] r (ID)
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[16] ; (SemiColon)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End RepeatStmt
+End Stmt
+Start Match
+[17] write (Write)
+Start Stmt
+Start WriteStmt
+Start Match
+[17] r (ID)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[19]  (EndFile)
 End NewExpr
 End Factor
 End BinaryAndExpr
