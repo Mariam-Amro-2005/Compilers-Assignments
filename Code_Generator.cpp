@@ -6,7 +6,6 @@
 
 using namespace std;
 
-
 /*
 {
 Test Cases for Binary AND (&)
@@ -484,8 +483,7 @@ const Token reserved_words[] =
         Token(REPEAT, "repeat"),
         Token(UNTIL, "until"),
         Token(READ, "read"),
-        Token(WRITE, "write")
-    };
+        Token(WRITE, "write")};
 const int num_reserved_words = sizeof(reserved_words) / sizeof(reserved_words[0]);
 
 // if there is tokens like < <=, sort them such that sub-tokens come last: <= <
@@ -565,7 +563,9 @@ void GetNextToken(CompilerInfo *pci, Token *ptoken)
         if (decimal)
         {
             ptoken->type = REAL_NUM;
-        } else {
+        }
+        else
+        {
             ptoken->type = INT_NUM;
         }
         Copy(ptoken->str, s, j);
@@ -718,7 +718,9 @@ TreeNode *NewExpr(CompilerInfo *pci, ParseInfo *ppi)
             tree->node_kind = INT_NODE;
             tree->expr_data_type = INTEGER;
             tree->num = atoi(ppi->next_token.str);
-        } else {
+        }
+        else
+        {
             tree->node_kind = REAL_NODE;
             tree->expr_data_type = REAL_TYPE;
             tree->real_num = atof(ppi->next_token.str);
@@ -911,37 +913,43 @@ TreeNode *WriteStmt(CompilerInfo *pci, ParseInfo *ppi)
 // readstmt -> read identifier
 TreeNode *ReadStmt(CompilerInfo *pci, ParseInfo *ppi)
 {
-    pci->debug_file.Out("Start ReadStmt");
-
     TreeNode *tree = new TreeNode;
     tree->node_kind = READ_NODE;
     tree->line_num = pci->in_file.cur_line_num;
 
     Match(pci, ppi, READ);
-    if (ppi->next_token.type == ID)
-        AllocateAndCopy(&tree->id, ppi->next_token.str);
+
+    TreeNode *idNode = new TreeNode;
+    idNode->node_kind = ID_NODE;
+    AllocateAndCopy(&idNode->id, ppi->next_token.str);
+    idNode->line_num = pci->in_file.cur_line_num;
+
     Match(pci, ppi, ID);
 
-    pci->debug_file.Out("End ReadStmt");
+    tree->child[0] = idNode; // FIXED
+
     return tree;
 }
 
 // assignstmt -> identifier := expr
 TreeNode *AssignStmt(CompilerInfo *pci, ParseInfo *ppi)
 {
-    pci->debug_file.Out("Start AssignStmt");
-
     TreeNode *tree = new TreeNode;
     tree->node_kind = ASSIGN_NODE;
     tree->line_num = pci->in_file.cur_line_num;
 
-    if (ppi->next_token.type == ID)
-        AllocateAndCopy(&tree->id, ppi->next_token.str);
+    // Create ID node for LHS
+    TreeNode *idNode = new TreeNode;
+    idNode->node_kind = ID_NODE;
+    AllocateAndCopy(&idNode->id, ppi->next_token.str);
+    idNode->line_num = pci->in_file.cur_line_num;
+
     Match(pci, ppi, ID);
     Match(pci, ppi, ASSIGN);
-    tree->child[0] = Expr(pci, ppi);
 
-    pci->debug_file.Out("End AssignStmt");
+    tree->child[0] = idNode;         // LHS
+    tree->child[1] = Expr(pci, ppi); // RHS
+
     return tree;
 }
 
@@ -1050,8 +1058,7 @@ TreeNode *Decl(CompilerInfo *pci, ParseInfo *ppi)
         ppi->next_token.type == BOOL)
     {
         tree->expr_data_type = tree->declared_type =
-            (ppi->next_token.type == INT ? INTEGER :
-            (ppi->next_token.type == REAL ? REAL_TYPE : BOOLEAN));
+            (ppi->next_token.type == INT ? INTEGER : (ppi->next_token.type == REAL ? REAL_TYPE : BOOLEAN));
 
         Match(pci, ppi, ppi->next_token.type);
     }
@@ -1114,21 +1121,28 @@ TreeNode *Parse(CompilerInfo *pci)
     ParseInfo parse_info;
     GetNextToken(pci, &parse_info.next_token);
 
+    // Parse declarations first
     TreeNode *decl_tree = Decls(pci, &parse_info);
-    TreeNode *stmt_tree  = StmtSeq(pci, &parse_info);
+
+    // Parse statement sequence
+    TreeNode *stmt_tree = StmtSeq(pci, &parse_info);
 
     if (parse_info.next_token.type != ENDFILE)
-        pci->debug_file.Out("Error code ends before file ends");
+        pci->debug_file.Out("Error: Code ends before file ends");
 
-    // connect declarations to statements:
+    // If no declarations, the whole program is just statements
     if (decl_tree == 0)
-        // throw 0;
         return stmt_tree;
 
-    decl_tree->sibling = stmt_tree;
+    // FIX: Connect the end of the declaration list to the statements
+    TreeNode *tmp = decl_tree;
+    while (tmp->sibling != nullptr) // traverse all declarations
+        tmp = tmp->sibling;
+
+    // Now tmp is the LAST declaration node
+    tmp->sibling = stmt_tree;
 
     return decl_tree;
-    // return stmt_tree;
 }
 
 void PrintTree(TreeNode *node, int sh = 0)
@@ -1136,18 +1150,37 @@ void PrintTree(TreeNode *node, int sh = 0)
     int i, NSH = 3;
     for (i = 0; i < sh; i++)
         printf(" ");
-
-    printf("[%s]", NodeKindStr[node->node_kind]);
-
     if (node->node_kind == DECL_NODE)
         printf("[decl=%s]", ExprDataTypeStr[node->expr_data_type]);
+
     if (node->node_kind == OPER_NODE)
         printf("[%s]", TokenTypeStr[node->oper]);
-    // else if (node->node_kind == NUM_NODE)
-    else if (node->node_kind == INT_NODE || node->node_kind == REAL_NODE)
+
+    if (node->node_kind == INT_NODE)
         printf("[%d]", node->num);
-    else if (node->node_kind == ID_NODE || node->node_kind == READ_NODE || node->node_kind == ASSIGN_NODE)
-        printf("[%s]", node->id);
+
+    if (node->node_kind == REAL_NODE)
+        printf("[%lf]", node->real_num); // FIX: prints doubles correctly
+
+    if (node->node_kind == ASSIGN_NODE)
+    {
+        printf("[Assign]");
+    }
+    else if (node->node_kind == READ_NODE)
+    {
+        printf("[Read]");
+    }
+    else if (node->node_kind == WRITE_NODE)
+    {
+        printf("[Write]");
+    }
+    else if (node->node_kind == ID_NODE)
+    {
+        if (node->id)
+            printf("[%s]", node->id);
+        else
+            printf("[ID(NULL)]");
+    }
 
     if (node->expr_data_type != VOID)
         printf("[%s]", ExprDataTypeStr[node->expr_data_type]);
@@ -1163,15 +1196,22 @@ void PrintTree(TreeNode *node, int sh = 0)
 
 void DestroyTree(TreeNode *node)
 {
-    int i;
+    if (!node)
+        return;
 
-    if (node->node_kind == ID_NODE || node->node_kind == READ_NODE || node->node_kind == ASSIGN_NODE)
+    // Free only ID_NODE
+    if (node->node_kind == ID_NODE)
+    {
         if (node->id)
             delete[] node->id;
+    }
 
-    for (i = 0; i < MAX_CHILDREN; i++)
+    // Recurse children
+    for (int i = 0; i < MAX_CHILDREN; i++)
         if (node->child[i])
             DestroyTree(node->child[i]);
+
+    // Recurse siblings
     if (node->sibling)
         DestroyTree(node->sibling);
 
@@ -1339,8 +1379,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
         }
 
         symbol_table->Insert(node->child[0]->id, node->line_num, node->declared_type);
-        node->expr_data_type = VOID;
-
+        // node->expr_data_type = VOID;
 
         if (node->sibling)
             Analyze(node->sibling, symbol_table);
@@ -1371,6 +1410,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
         if (!var)
             throwErr(std::string("Variable '") + node->id +
                      "' used before declaration.");
+        symbol_table->Insert(node->id, node->line_num, var->declared_type);
         node->expr_data_type = var->declared_type;
     }
 
@@ -1423,15 +1463,20 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
 
     else if (node->node_kind == ASSIGN_NODE) {
         if (!node->child[0])
+            throwErr("Assignment missing LHS expression.");
+        if (!node->child[1])
             throwErr("Assignment missing RHS expression.");
 
-        VariableInfo *var = symbol_table->Find(node->id);
+        TreeNode *lhs = node->child[0]; // ID
+        TreeNode *rhs = node->child[1]; // expr
+
+        VariableInfo *var = symbol_table->Find(lhs->id);
         if (!var) {
             throwErr(std::string("Variable '") + node->id +
                      "' not declared. All variables must be declared at the beginning.");
         }
 
-        ExprDataType rhsType = node->child[0]->expr_data_type;
+        ExprDataType rhsType = rhs->expr_data_type;
 
 
         if (var->declared_type != rhsType) {
@@ -1443,12 +1488,23 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
     }
 
     else if (node->node_kind == READ_NODE) {
-        VariableInfo *var = symbol_table->Find(node->id);
+        TreeNode *idNode = node->child[0];
+
+        if (idNode->node_kind != ID_NODE)
+        {
+            printf("ERROR: READ expects an identifier at line %d\n",
+                   node->line_num);
+        }
+
+        // VariableInfo *var = symbol_table->Find(node->id);
+        VariableInfo *var = symbol_table->Find(idNode->id);
         if (!var) {
             throwErr(std::string("Variable '") + node->id +
                      "' not declared. All variables must be declared at the beginning.");
         }
-        node->expr_data_type = VOID;
+        // node->expr_data_type = VOID;
+        symbol_table->Insert(idNode->id, node->line_num, var->declared_type);
+        idNode->expr_data_type = var->declared_type;
     }
 
     else if (node->node_kind == WRITE_NODE) {
@@ -1483,6 +1539,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
     if (node->sibling)
         Analyze(node->sibling, symbol_table);
 }
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Code Generator //////////////////////////////////////////////////////////////////
 
