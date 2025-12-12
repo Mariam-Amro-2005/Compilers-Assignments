@@ -1453,12 +1453,6 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
             node->expr_data_type = (L == REAL_TYPE || R == REAL_TYPE) ? REAL_TYPE : INTEGER;
             break;
 
-        // case BINARY_AND:
-        //     if (L != INTEGER || R != INTEGER)
-        //         throwErr("Binary AND '&' requires INTEGER operands only.");
-        //     node->expr_data_type = INTEGER;
-        //     break;
-
         case LESS_THAN:
         case EQUAL:
             if (!isNumeric(L) || !isNumeric(R))
