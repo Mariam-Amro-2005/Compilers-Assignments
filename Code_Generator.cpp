@@ -1522,11 +1522,6 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
     {
         if (!node->child[0])
             throwErr("WRITE missing expression.");
-        ExprDataType t = node->child[0]->expr_data_type;
-        if (t == BOOLEAN)
-            throwErr("Cannot WRITE BOOLEAN type.");
-        if (!isNumeric(t))
-            throwErr("WRITE requires numeric expression.");
         node->expr_data_type = VOID;
     }
 
