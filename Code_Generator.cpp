@@ -1443,6 +1443,8 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
         case MINUS:
         case TIMES:
         case POWER:
+        case DIVIDE:
+        case BINARY_AND:
             if (L == BOOLEAN || R == BOOLEAN)
                 throwErr("Arithmetic operator cannot be applied to BOOLEAN.");
             if (!isNumeric(L) || !isNumeric(R))
@@ -1451,20 +1453,11 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
             node->expr_data_type = (L == REAL_TYPE || R == REAL_TYPE) ? REAL_TYPE : INTEGER;
             break;
 
-        case DIVIDE:
-            if (L == BOOLEAN || R == BOOLEAN)
-                throwErr("Division cannot be applied to BOOLEAN.");
-            if (!isNumeric(L) || !isNumeric(R))
-                throwErr("Division requires INTEGER or REAL operands.");
-            // Division always yields REAL
-            node->expr_data_type = REAL_TYPE;
-            break;
-
-        case BINARY_AND:
-            if (L != INTEGER || R != INTEGER)
-                throwErr("Binary AND '&' requires INTEGER operands only.");
-            node->expr_data_type = INTEGER;
-            break;
+        // case BINARY_AND:
+        //     if (L != INTEGER || R != INTEGER)
+        //         throwErr("Binary AND '&' requires INTEGER operands only.");
+        //     node->expr_data_type = INTEGER;
+        //     break;
 
         case LESS_THAN:
         case EQUAL:
@@ -1498,7 +1491,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
 
         ExprDataType rhsType = rhs->expr_data_type;
 
-        if (var->declared_type != rhsType)
+        if (var->declared_type != rhsType && var->declared_type != REAL_TYPE)
         {
             char msg[256];
             snprintf(msg, sizeof(msg), "Type mismatch: variable '%s' is %s but assigned %s.",
@@ -1594,11 +1587,8 @@ double BinaryAnd(double a, double b)
     return a * a - b * b;
 }
 
-// need to update
 double Evaluate(TreeNode *node, SymbolTable *symbol_table, double *variables)
 {
-    // if (node->node_kind == NUM_NODE)
-    //     return node->num;
     if (node->node_kind == INT_NODE)
         return (double)node->num;
     if (node->node_kind == REAL_NODE)
