@@ -1,4 +1,4 @@
-real x; real y; real z; int r;
+real x; real y; real z; real r;
 x := 2.3;
 y := x;
 write x; write y;
@@ -15,4 +15,6 @@ repeat
     write r
 until 100 < r;
 
+r := z;
+write r
 
