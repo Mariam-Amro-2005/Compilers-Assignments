@@ -19,4 +19,6 @@ repeat
     write r
 until 100 < r;}
 
+r := z;
+write r
 

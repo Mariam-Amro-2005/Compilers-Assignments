@@ -1383,7 +1383,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
         if (existing)
         {
             char msg[256];
-            snprintf(msg, sizeof(msg), "Variable '%s' was declaerd before.", existing->name);
+            snprintf(msg, sizeof(msg), "Variable '%s' was declaerd before.", node->id);
             throwErr(msg);
         }
 
@@ -1443,20 +1443,14 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
         case MINUS:
         case TIMES:
         case POWER:
+        case DIVIDE:
+        case BINARY_AND:
             if (L == BOOLEAN || R == BOOLEAN)
                 throwErr("Arithmetic operator cannot be applied to BOOLEAN.");
             if (!isNumeric(L) || !isNumeric(R))
                 throwErr("Arithmetic requires INTEGER or REAL operands.");
 
             node->expr_data_type = (L == REAL_TYPE || R == REAL_TYPE) ? REAL_TYPE : INTEGER;
-            break;
-
-        case DIVIDE:
-            node->expr_data_type = REAL_TYPE;
-            break;
-
-        case BINARY_AND:
-            node->expr_data_type = node->child[0]->expr_data_type == REAL_TYPE || node->child[1]->expr_data_type == REAL_TYPE ? REAL_TYPE : INTEGER;
             break;
 
         case LESS_THAN:
@@ -1587,11 +1581,8 @@ double BinaryAnd(double a, double b)
     return a * a - b * b;
 }
 
-// need to update
 double Evaluate(TreeNode *node, SymbolTable *symbol_table, double *variables)
 {
-    // if (node->node_kind == NUM_NODE)
-    //     return node->num;
     if (node->node_kind == INT_NODE)
         return (double)node->num;
     if (node->node_kind == REAL_NODE)
