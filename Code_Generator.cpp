@@ -1624,8 +1624,13 @@ double Evaluate(TreeNode *node, SymbolTable *symbol_table, double *variables)
         return a - b;
     if (node->oper == TIMES)
         return a * b;
-    if (node->oper == DIVIDE)
+    if (node->oper == DIVIDE){
+        if (b == 0){
+            printf("RUNTIME ERROR: Division by zero at line %d\n", node->line_num);
+            throw 0;
+        }
         return a / b;
+    }
     if (node->oper == POWER)
         return Power(a, b);
     if (node->oper == BINARY_AND)
