@@ -1383,7 +1383,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
         if (existing)
         {
             char msg[256];
-            snprintf(msg, sizeof(msg), "Variable '%s' was declaerd before.", node->id);
+            snprintf(msg, sizeof(msg), "Variable '%s' was declaerd before.", existing->name);
             throwErr(msg);
         }
 
