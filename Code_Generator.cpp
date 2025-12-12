@@ -762,15 +762,23 @@ struct Value {
             return Value(!other.asBool() ? false : this->asBool());
         }
     }
-    // Value powerOper(const Value &other) const {
-    //     if (type == DOUBLE || other.type == DOUBLE) {
-    //         return Value(pow(this->asDouble(), other.asDouble()));
-    //     } else if (type == INT || other.type == INT) {
-    //         return Value((int)pow(this->asInt(), other.asInt()));
-    //     } else {
-    //         return Value(this->asBool() && other.asBool());
-    //     }
-    // }
+    Value powerOper(const Value &other) const {
+        if (type == REAL || other.type == REAL) {
+            if (this->asDouble() == 0.0)return Value(0.0);
+            else if (other.asDouble() == 0.0)return Value(1.0);
+            else {
+                double x = this->asDouble();
+                for (double i = 1.0; i < other.asDouble(); i += 1.0) {
+                    x *= this->asDouble();
+                }
+                return Value(x);
+            }
+        }
+        else if (type == INTEGER || other.type == INTEGER) {
+            return Value(Power(this->asInt(), other.asInt()));
+        }
+        return this->asInt();
+    }
     Value binanryAndOper(const Value &other) const {
         return Value(BinaryAnd(this->asInt() , other.asInt()));
     }
@@ -1369,7 +1377,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
     // NUM_NODE type
     if (node->node_kind == NUM_NODE) {
         // Assuming you have a way to determine if the number is real or integer
-        if (1) {
+        if (0) {
             node->expr_data_type = REAL;
         } else {
             node->expr_data_type = INTEGER;
@@ -1532,8 +1540,8 @@ Value Evaluate(TreeNode *node, SymbolTable *symbol_table, Value *variables)
         return a.timesOper(b);
     if (node->oper == DIVIDE)
         return a.divideOper(b);
-    // if (node->oper == POWER)
-    //     return Power(a, b);
+    if (node->oper == POWER)
+        return a.powerOper(b);
     if (node->oper == BINARY_AND) {
         if (a.type != INTEGER || b.type != INTEGER)
             throw ("Binary AND '&' requires integer operands");
