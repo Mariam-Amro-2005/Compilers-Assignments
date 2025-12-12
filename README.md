@@ -23,8 +23,9 @@ This assignment extends the compiler from Assignment 1 to support three data typ
 ```
 program        → decls stmtseq
 
-decls          → { decl }
-decl           → datatype id ';'
+decls          → decl { ; decl }
+
+decl           → datatype id
 
 datatype       → 'int' | 'real' | 'bool'
 
