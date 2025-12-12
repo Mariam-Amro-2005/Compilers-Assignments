@@ -6,7 +6,21 @@ Start Match
 [1] ; (SemiColon)
 End Decl
 Start Match
+[1] real (Real)
+Start Decl
+Start Match
+[1] y (ID)
+Start Match
+[1] ; (SemiColon)
+End Decl
+Start Match
+[1] int (Int)
+Start Decl
+Start Match
+[1] z (ID)
+Start Match
 [2] x (ID)
+End Decl
 End Decl
 Start StmtSeq
 Start Stmt
@@ -14,19 +28,11 @@ Start AssignStmt
 Start Match
 [2] := (Assign)
 Start Match
-[2] 2 (IntNum)
+[2] 2.3 (RealNum)
 Start Expr
 Start MathExpr
 Start Term
 Start BinaryAndExpr
-Start Factor
-Start NewExpr
-Start Match
-[2] & (BinaryAnd)
-End NewExpr
-End Factor
-Start Match
-[2] 3 (IntNum)
 Start Factor
 Start NewExpr
 Start Match
@@ -40,11 +46,13 @@ End Expr
 End AssignStmt
 End Stmt
 Start Match
-[3] if (If)
+[3] y (ID)
 Start Stmt
-Start IfStmt
+Start AssignStmt
 Start Match
-[3] true (True)
+[3] := (Assign)
+Start Match
+[3] x (ID)
 Start Expr
 Start MathExpr
 Start Term
@@ -52,16 +60,17 @@ Start BinaryAndExpr
 Start Factor
 Start NewExpr
 Start Match
-[3] then (Then)
+[3] ; (SemiColon)
 End NewExpr
 End Factor
 End BinaryAndExpr
 End Term
 End MathExpr
 End Expr
+End AssignStmt
+End Stmt
 Start Match
 [4] write (Write)
-Start StmtSeq
 Start Stmt
 Start WriteStmt
 Start Match
@@ -73,7 +82,7 @@ Start BinaryAndExpr
 Start Factor
 Start NewExpr
 Start Match
-[5] end (End)
+[4] ; (SemiColon)
 End NewExpr
 End Factor
 End BinaryAndExpr
@@ -82,9 +91,26 @@ End MathExpr
 End Expr
 End WriteStmt
 End Stmt
-End StmtSeq
 Start Match
-[6]  (EndFile)
-End IfStmt
+[4] write (Write)
+Start Stmt
+Start WriteStmt
+Start Match
+[4] y (ID)
+Start Expr
+Start MathExpr
+Start Term
+Start BinaryAndExpr
+Start Factor
+Start NewExpr
+Start Match
+[4]  (EndFile)
+End NewExpr
+End Factor
+End BinaryAndExpr
+End Term
+End MathExpr
+End Expr
+End WriteStmt
 End Stmt
 End StmtSeq
