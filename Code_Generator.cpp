@@ -1452,18 +1452,11 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
             break;
 
         case DIVIDE:
-            if (L == BOOLEAN || R == BOOLEAN)
-                throwErr("Division cannot be applied to BOOLEAN.");
-            if (!isNumeric(L) || !isNumeric(R))
-                throwErr("Division requires INTEGER or REAL operands.");
-            // Division always yields REAL
             node->expr_data_type = REAL_TYPE;
             break;
 
         case BINARY_AND:
-            if (L != INTEGER || R != INTEGER)
-                throwErr("Binary AND '&' requires INTEGER operands only.");
-            node->expr_data_type = INTEGER;
+            node->expr_data_type = node->child[0]->expr_data_type == REAL_TYPE || node->child[1]->expr_data_type == REAL_TYPE ? REAL_TYPE : INTEGER;
             break;
 
         case LESS_THAN:
@@ -1498,7 +1491,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
 
         ExprDataType rhsType = rhs->expr_data_type;
 
-        if (var->declared_type != rhsType)
+        if (var->declared_type != rhsType && var->declared_type != REAL_TYPE)
         {
             char msg[256];
             snprintf(msg, sizeof(msg), "Type mismatch: variable '%s' is %s but assigned %s.",
