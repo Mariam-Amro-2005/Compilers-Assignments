@@ -1006,7 +1006,7 @@ TreeNode *Stmt(CompilerInfo *pci, ParseInfo *ppi)
     pci->debug_file.Out("Start Stmt");
 
     // Compare the next token with the First() of possible statements
-    TreeNode *tree = 0;
+    TreeNode *tree = nullptr;
     if (ppi->next_token.type == IF)
         tree = IfStmt(pci, ppi);
     else if (ppi->next_token.type == REPEAT)
@@ -1017,6 +1017,8 @@ TreeNode *Stmt(CompilerInfo *pci, ParseInfo *ppi)
         tree = ReadStmt(pci, ppi);
     else if (ppi->next_token.type == WRITE)
         tree = WriteStmt(pci, ppi);
+    else if (ppi->next_token.type == ENDFILE)
+        return tree;
     else
         throw 0;
 
@@ -1087,7 +1089,7 @@ TreeNode *Decl(CompilerInfo *pci, ParseInfo *ppi)
 // decls -> decl { ; decl }
 TreeNode *Decls(CompilerInfo *pci, ParseInfo *ppi)
 {
-    pci->debug_file.Out("Start Decl");
+    pci->debug_file.Out("Start Decls");
 
     // If next token is not a type -> no declarations
     if (ppi->next_token.type != INT &&
@@ -1115,7 +1117,7 @@ TreeNode *Decls(CompilerInfo *pci, ParseInfo *ppi)
         last_decl = next;
     }
 
-    pci->debug_file.Out("End Decl");
+    pci->debug_file.Out("End Decls");
     return first_decl;
 }
 
@@ -1383,7 +1385,7 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
         if (existing)
         {
             char msg[256];
-            snprintf(msg, sizeof(msg), "Variable '%s' was declaerd before.", node->id);
+            snprintf(msg, sizeof(msg), "Variable '%s' was declared before.", node->child[0]->id);
             throwErr(msg);
         }
 
