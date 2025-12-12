@@ -301,7 +301,21 @@ void AllocateAndCopy(char **a, const char *b)
     *a = new char[n + 1];
     strcpy(*a, b);
 }
+int Power(int a, int b)
+{
+    if (a == 0)
+        return 0;
+    if (b == 0)
+        return 1;
+    if (b >= 1)
+        return a * Power(a, b - 1);
+    return 0;
+}
 
+int BinaryAnd(int a, int b)
+{
+    return a * a - b * b;
+}
 ////////////////////////////////////////////////////////////////////////////////////
 // Input and Output ////////////////////////////////////////////////////////////////
 
@@ -654,7 +668,113 @@ const char *ExprDataTypeStr[] =
         "Void", "Integer", "Boolean"};
 
 #define MAX_CHILDREN 3
+struct Value {
+    ExprDataType type;
+    union {
+        int int_val;
+        double real_value;
+        bool bool_val;
+    } v{};
 
+    Value() : type(VOID) { v.int_val = 0; }
+    Value(int x) : type(INTEGER) { v.int_val = x; }
+    Value(double x) : type(REAL) { v.real_value = x; }
+    Value(bool x) : type(BOOLEAN) { v.bool_val = x; }
+
+    int asInt() const {
+        if (type == INTEGER) return v.int_val;
+        if (type == REAL) return (int)(v.real_value);
+        return v.bool_val ? 1 : 0;
+    }
+    double asDouble() const {
+        if (type == REAL) return v.real_value;
+        if (type == INTEGER) return (double)(v.int_val);
+        return v.bool_val ? 1.0 : 0.0;
+    }
+    bool asBool() const {
+        if (type == BOOLEAN) return v.bool_val;
+        if (type == INTEGER) return v.int_val != 0;
+        return v.real_value != 0.0;
+    }
+    void setInt(int x) { type = INTEGER; v.int_val = x; }
+    void setDouble(double x) { type = REAL; v.real_value = x; }
+    void setBool(bool x) { type = BOOLEAN; v.bool_val = x; }
+    bool equalOper(const Value &other) const {
+        if (type != other.type) return false;
+        switch (type) {
+            case INTEGER: return v.int_val == other.v.int_val;
+            case REAL: return v.real_value == other.v.real_value;
+            case BOOLEAN: return v.bool_val == other.v.bool_val;
+            default: return true; // both NONE
+        }
+    }
+    bool lessThanOper(const Value &other) const {
+        if (type != other.type) return false;
+        switch (type) {
+            case INTEGER: return v.int_val < other.v.int_val;
+            case REAL: return v.real_value < other.v.real_value;
+            case BOOLEAN: return (!v.bool_val) && other.v.bool_val;
+            default: return false; // both NONE
+        }
+    }
+    bool lessThanOrEqualOper(const Value &other) const {
+        if (type != other.type) return false;
+        switch (type) {
+            case INTEGER: return v.int_val <= other.v.int_val;
+            case REAL: return v.real_value <= other.v.real_value;
+            case BOOLEAN: return (!v.bool_val) || other.v.bool_val;
+            default: return true; // both NONE
+        }
+    }
+    Value plusOper(const Value &other) const {
+        if (type == REAL || other.type == REAL) {
+            return Value(this->asDouble() + other.asDouble());
+        } else if (type == INTEGER || other.type == INTEGER) {
+            return Value(this->asInt() + other.asInt());
+        } else {
+            return Value(this->asBool() || other.asBool());
+        }
+    }
+    Value minusOper(const Value &other) const {
+        if (type == REAL || other.type == REAL) {
+            return Value(this->asDouble() - other.asDouble());
+        } else if (type == INTEGER || other.type == INTEGER) {
+            return Value(this->asInt() - other.asInt());
+        } else {
+            return Value(this->asBool() && !other.asBool());
+        }
+    }
+    Value timesOper(const Value &other) const {
+        if (type == REAL || other.type == REAL) {
+            return Value(this->asDouble() * other.asDouble());
+        } else if (type == INTEGER || other.type == INTEGER) {
+            return Value(this->asInt() * other.asInt());
+        } else {
+            return Value(this->asBool() && other.asBool());
+        }
+    }
+    Value divideOper(const Value &other) const {
+        if (type == REAL || other.type == REAL) {
+            return Value(this->asDouble() / other.asDouble());
+        } else if (type == INTEGER || other.type == INTEGER) {
+            return Value(this->asInt() / other.asInt());
+        } else {
+            return Value(!other.asBool() ? false : this->asBool());
+        }
+    }
+    // Value powerOper(const Value &other) const {
+    //     if (type == DOUBLE || other.type == DOUBLE) {
+    //         return Value(pow(this->asDouble(), other.asDouble()));
+    //     } else if (type == INT || other.type == INT) {
+    //         return Value((int)pow(this->asInt(), other.asInt()));
+    //     } else {
+    //         return Value(this->asBool() && other.asBool());
+    //     }
+    // }
+    Value binanryAndOper(const Value &other) const {
+        return Value(BinaryAnd(this->asInt() , other.asInt()));
+    }
+};
 struct TreeNode
 {
     TreeNode *child[MAX_CHILDREN];
@@ -1248,7 +1368,12 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
 
     // NUM_NODE type
     if (node->node_kind == NUM_NODE) {
-        node->expr_data_type = INTEGER;
+        // Assuming you have a way to determine if the number is real or integer
+        if (1) {
+            node->expr_data_type = REAL;
+        } else {
+            node->expr_data_type = INTEGER;
+        }
     }
         // ID_NODE: must be declared
     else if (node->node_kind == ID_NODE) {
@@ -1382,82 +1507,81 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table) {
 ////////////////////////////////////////////////////////////////////////////////////
 // Code Generator //////////////////////////////////////////////////////////////////
 
-int Power(int a, int b)
-{
-    if (a == 0)
-        return 0;
-    if (b == 0)
-        return 1;
-    if (b >= 1)
-        return a * Power(a, b - 1);
-    return 0;
-}
 
-int BinaryAnd(int a, int b)
-{
-    return a * a - b * b;
-}
 
-int Evaluate(TreeNode *node, SymbolTable *symbol_table, int *variables)
+
+Value Evaluate(TreeNode *node, SymbolTable *symbol_table, Value *variables)
 {
     if (node->node_kind == NUM_NODE)
         return node->num;
     if (node->node_kind == ID_NODE)
         return variables[symbol_table->Find(node->id)->memloc];
 
-    int a = Evaluate(node->child[0], symbol_table, variables);
-    int b = Evaluate(node->child[1], symbol_table, variables);
+    Value a = Evaluate(node->child[0], symbol_table, variables);
+    Value b = Evaluate(node->child[1], symbol_table, variables);
 
     if (node->oper == EQUAL)
-        return a == b;
+        return a.equalOper(b);
     if (node->oper == LESS_THAN)
-        return a < b;
+        return a.lessThanOper(b);
     if (node->oper == PLUS)
-        return a + b;
+        return a.plusOper(b);
     if (node->oper == MINUS)
-        return a - b;
+        return a.minusOper(b);
     if (node->oper == TIMES)
-        return a * b;
+        return a.timesOper(b);
     if (node->oper == DIVIDE)
-        return a / b;
-    if (node->oper == POWER)
-        return Power(a, b);
-    if (node->oper == BINARY_AND)
-        return BinaryAnd(a, b);
+        return a.divideOper(b);
+    // if (node->oper == POWER)
+    //     return Power(a, b);
+    if (node->oper == BINARY_AND) {
+        if (a.type != INTEGER || b.type != INTEGER)
+            throw ("Binary AND '&' requires integer operands");
+        return a.binanryAndOper(b);
+    }
     throw 0;
 }
 
-void RunProgram(TreeNode *node, SymbolTable *symbol_table, int *variables)
+void RunProgram(TreeNode *node, SymbolTable *symbol_table, Value *variables)
 {
     if (node->node_kind == IF_NODE)
     {
-        int cond = Evaluate(node->child[0], symbol_table, variables);
-        if (cond)
+        Value cond = Evaluate(node->child[0], symbol_table, variables);
+        if (cond.asBool())
             RunProgram(node->child[1], symbol_table, variables);
         else if (node->child[2])
             RunProgram(node->child[2], symbol_table, variables);
     }
     if (node->node_kind == ASSIGN_NODE)
     {
-        int v = Evaluate(node->child[0], symbol_table, variables);
+        Value v = Evaluate(node->child[0], symbol_table, variables);
         variables[symbol_table->Find(node->id)->memloc] = v;
     }
     if (node->node_kind == READ_NODE)
     {
         printf("Enter %s: ", node->id);
-        scanf("%d", &variables[symbol_table->Find(node->id)->memloc]);
+        int tmp = 0;
+        if (scanf("%d", &tmp) == 1)
+            variables[symbol_table->Find(node->id)->memloc].setInt(tmp);
+        else
+            variables[symbol_table->Find(node->id)->memloc].setInt(0);
     }
     if (node->node_kind == WRITE_NODE)
     {
-        int v = Evaluate(node->child[0], symbol_table, variables);
-        printf("Val: %d\n", v);
+        Value v = Evaluate(node->child[0], symbol_table, variables);
+        switch (v.type) {
+            case 1: printf("Val: %d\n", v.v.int_val); break;
+            case 2: printf("Val: %f\n", v.v.real_value); break;
+            case 3: printf("Val: %s\n", v.v.bool_val ? "true" : "false"); break;
+            default: printf("Val: <none>\n"); break;
+        }
     }
     if (node->node_kind == REPEAT_NODE)
     {
         do
         {
             RunProgram(node->child[0], symbol_table, variables);
-        } while (!Evaluate(node->child[1], symbol_table, variables));
+        } while (!Evaluate(node->child[1], symbol_table, variables).asBool());
     }
     if (node->sibling)
         RunProgram(node->sibling, symbol_table, variables);
@@ -1466,9 +1590,15 @@ void RunProgram(TreeNode *node, SymbolTable *symbol_table, int *variables)
 void RunProgram(TreeNode *syntax_tree, SymbolTable *symbol_table)
 {
     int i;
-    int *variables = new int[symbol_table->num_vars];
-    for (i = 0; i < symbol_table->num_vars; i++)
-        variables[i] = 0;
+    Value *variables = new Value[symbol_table->num_vars];
+    for (i = 0; i < symbol_table->num_vars; i++) {
+        switch (variables[i].type) {
+            case 1:variables[i].setInt(0); break;
+            case 2:variables[i].setDouble(0.0); break;
+            case 3:variables[i].setBool(false); break;
+            default: variables[i].setInt(0); break;
+        }
+    }
     RunProgram(syntax_tree, symbol_table, variables);
     delete[] variables;
 }
