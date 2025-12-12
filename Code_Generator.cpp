@@ -563,9 +563,7 @@ void GetNextToken(CompilerInfo *pci, Token *ptoken)
         if (decimal)
         {
             ptoken->type = REAL_NUM;
-        }
-        else
-        {
+        } else {
             ptoken->type = INT_NUM;
         }
         Copy(ptoken->str, s, j);
@@ -718,9 +716,7 @@ TreeNode *NewExpr(CompilerInfo *pci, ParseInfo *ppi)
             tree->node_kind = INT_NODE;
             tree->expr_data_type = INTEGER;
             tree->num = atoi(ppi->next_token.str);
-        }
-        else
-        {
+        } else {
             tree->node_kind = REAL_NODE;
             tree->expr_data_type = REAL_TYPE;
             tree->real_num = atof(ppi->next_token.str);
@@ -913,6 +909,8 @@ TreeNode *WriteStmt(CompilerInfo *pci, ParseInfo *ppi)
 // readstmt -> read identifier
 TreeNode *ReadStmt(CompilerInfo *pci, ParseInfo *ppi)
 {
+    pci->debug_file.Out("Start ReadStmt");
+
     TreeNode *tree = new TreeNode;
     tree->node_kind = READ_NODE;
     tree->line_num = pci->in_file.cur_line_num;
@@ -927,13 +925,15 @@ TreeNode *ReadStmt(CompilerInfo *pci, ParseInfo *ppi)
     Match(pci, ppi, ID);
 
     tree->child[0] = idNode; // FIXED
-
+    pci->debug_file.Out("End ReadStmt");
     return tree;
 }
 
 // assignstmt -> identifier := expr
 TreeNode *AssignStmt(CompilerInfo *pci, ParseInfo *ppi)
 {
+    pci->debug_file.Out("Start AssignStmt");
+
     TreeNode *tree = new TreeNode;
     tree->node_kind = ASSIGN_NODE;
     tree->line_num = pci->in_file.cur_line_num;
@@ -950,6 +950,7 @@ TreeNode *AssignStmt(CompilerInfo *pci, ParseInfo *ppi)
     tree->child[0] = idNode;         // LHS
     tree->child[1] = Expr(pci, ppi); // RHS
 
+    pci->debug_file.Out("End AssignStmt");
     return tree;
 }
 
@@ -1143,6 +1144,7 @@ TreeNode *Parse(CompilerInfo *pci)
     tmp->sibling = stmt_tree;
 
     return decl_tree;
+    // return stmt_tree;
 }
 
 void PrintTree(TreeNode *node, int sh = 0)
