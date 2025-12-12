@@ -773,7 +773,10 @@ struct Value {
                 return Value(x);
             }
         }
-        return this->asDouble();
+        else if (type == INTEGER || other.type == INTEGER) {
+            return Value(Power(this->asInt(), other.asInt()));
+        }
+        return this->asInt();
     }
     Value binanryAndOper(const Value &other) const {
         return Value(BinaryAnd(this->asInt() , other.asInt()));
@@ -1386,6 +1389,18 @@ Value Evaluate(TreeNode *node, SymbolTable *symbol_table, Value *variables)
         return node->num;
     if (node->node_kind == ID_NODE)
         return variables[symbol_table->Find(node->id)->memloc];
+    // if (node->node_kind == NUM_NODE) {
+    //     if (node->expr_data_type == REAL)
+    //         return Value((double)node->num);
+    //     if (node->expr_data_type == BOOLEAN)
+    //         return Value(node->num != 0);
+    //     return Value(node->num);
+    // }
+    // if (node->node_kind == ID_NODE) {
+    //     auto *vi = symbol_table->Find(node->id);
+    //     if (!vi) throw ("Undefined variable");
+    //     return variables[vi->memloc];
+    // }
 
     Value a = Evaluate(node->child[0], symbol_table, variables);
     Value b = Evaluate(node->child[1], symbol_table, variables);
