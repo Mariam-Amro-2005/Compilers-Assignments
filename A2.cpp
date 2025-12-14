@@ -1,3 +1,4 @@
+// Mariam Amro 20221217 Sobhi Mohamed 20221088 Sama Ashraf 20220436 Ahmed Saeed 20220040 Josiane Usama 20220502
 TreeNode *NewExpr(CompilerInfo *pci, ParseInfo *ppi)
 {
     TokenType p = ppi->next_token.type;
@@ -53,7 +54,6 @@ TreeNode *NewExpr(CompilerInfo *pci, ParseInfo *ppi)
     }
     throw 0;
 }
-
 TreeNode *ReadStmt(CompilerInfo *pci, ParseInfo *ppi)
 {
     pci->debug_file.Out("Start ReadStmt");
@@ -70,7 +70,6 @@ TreeNode *ReadStmt(CompilerInfo *pci, ParseInfo *ppi)
     pci->debug_file.Out("End ReadStmt");
     return tree;
 }
-
 TreeNode *AssignStmt(CompilerInfo *pci, ParseInfo *ppi)
 {
     pci->debug_file.Out("Start AssignStmt");
@@ -88,7 +87,6 @@ TreeNode *AssignStmt(CompilerInfo *pci, ParseInfo *ppi)
     pci->debug_file.Out("End AssignStmt");
     return tree;
 }
-
 TreeNode *Decl(CompilerInfo *pci, ParseInfo *ppi)
 {
     pci->debug_file.Out("Start Decl");
@@ -114,7 +112,6 @@ TreeNode *Decl(CompilerInfo *pci, ParseInfo *ppi)
     pci->debug_file.Out("End Decl");
     return tree;
 }
-
 TreeNode *Decls(CompilerInfo *pci, ParseInfo *ppi)
 {
     pci->debug_file.Out("Start Decls");
@@ -135,7 +132,6 @@ TreeNode *Decls(CompilerInfo *pci, ParseInfo *ppi)
     pci->debug_file.Out("End Decls");
     return first_decl;
 }
-
 TreeNode *Parse(CompilerInfo *pci)
 {
     ParseInfo parse_info;
@@ -152,41 +148,6 @@ TreeNode *Parse(CompilerInfo *pci)
     tmp->sibling = stmt_tree;
     return decl_tree;
 }
-
-struct SymbolTable
-{
-    void Insert(const char *name, int line_num, ExprDataType type = INTEGER)
-    {
-        LineLocation *lineloc = new LineLocation;
-        lineloc->line_num = line_num;
-        lineloc->next = 0;
-        int h = Hash(name);
-        VariableInfo *prev = 0;
-        VariableInfo *cur = var_info[h];
-        while (cur)
-        {
-            if (Equals(name, cur->name))
-            {
-                cur->tail_line->next = lineloc;
-                cur->tail_line = lineloc;
-                return;
-            }
-            prev = cur;
-            cur = cur->next_var;
-        }
-        VariableInfo *vi = new VariableInfo;
-        vi->head_line = vi->tail_line = lineloc;
-        vi->next_var = 0;
-        vi->memloc = num_vars++;
-        AllocateAndCopy(&vi->name, name);
-        vi->declared_type = type;
-        if (!prev)
-            var_info[h] = vi;
-        else
-            prev->next_var = vi;
-    }
-};
-
 void Analyze(TreeNode *node, SymbolTable *symbol_table)
 {
     if (!node)
@@ -346,7 +307,6 @@ void Analyze(TreeNode *node, SymbolTable *symbol_table)
     if (node->sibling)
         Analyze(node->sibling, symbol_table);
 }
-
 double Evaluate(TreeNode *node, SymbolTable *symbol_table, double *variables)
 {
     NodeKind nkind = node->node_kind;
@@ -392,7 +352,6 @@ double Evaluate(TreeNode *node, SymbolTable *symbol_table, double *variables)
     printf("RUNTIME ERROR: Unknown operator at line %d\n", node->line_num);
     throw 0;
 }
-
 void RunProgram(TreeNode *node, SymbolTable *symbol_table, double *variables)
 {
     NodeKind nkind = node->node_kind;
